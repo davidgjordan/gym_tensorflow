@@ -1,3 +1,6 @@
+"""
+Solve OpenAI Gym Cartpole V1 with DQN.
+"""
 import gym
  
 import numpy as np
@@ -6,7 +9,7 @@ import math
  
  
 #Hyperparameters
-envSize = 128
+envSize = 4
 H = 100 #number of neurons in hidden layer
 batch_number = 50 # size of batches for training
 learn_rate = .01
@@ -23,7 +26,7 @@ def reduced_rewards(r):
  
 if __name__ == '__main__':
   
-    env = gym.make('MsPacman-ram-v0')
+    env = gym.make('CartPole-v1')
     #env.monitor.start('training_dir', force=True)
     #Setup tensorflow
     tf.reset_default_graph()
@@ -50,9 +53,11 @@ if __name__ == '__main__':
     new_gradients = tf.gradients(loss, training_variables)
  
     # Training
- 
+
     adam = tf.train.AdamOptimizer(learning_rate=learn_rate)
- 
+    #adam = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+    #adam = tf.train.GradientDescentOptimizer(learning_rate=learn_rate)
+
     w1_gradent = tf.placeholder(tf.float32,name="batch_gradent1")
  
     w2_gradent = tf.placeholder(tf.float32,name="batch_gradent2")
@@ -87,8 +92,7 @@ if __name__ == '__main__':
  
                 #get action from policy
                 tfprob = sess.run(probablility,feed_dict={observations: x})
-                #action = 1 if np.random.uniform() < tfprob else 0
-                action = env.action_space.sample()
+                action = 1 if np.random.uniform() < tfprob else 0
                 #will need to rework action to be more generic, not just 1 or 0
              
                 xs.append(x) # observation
@@ -97,7 +101,6 @@ if __name__ == '__main__':
  
                 #run an action
                 observation, reward, done, info = env.step(action)
-                #print("observation ", observation)
                 reward_sum += reward
  
                 drs.append(reward)
