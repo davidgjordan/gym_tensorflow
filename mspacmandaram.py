@@ -51,7 +51,9 @@ if __name__ == '__main__':
  
     # Training
  
-    adam = tf.train.AdamOptimizer(learning_rate=learn_rate)
+    #adam = tf.train.AdamOptimizer(learning_rate=learn_rate)
+    #adam = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+    adam = tf.train.GradientDescentOptimizer(learning_rate=learn_rate)
  
     w1_gradent = tf.placeholder(tf.float32,name="batch_gradent1")
  
@@ -87,6 +89,8 @@ if __name__ == '__main__':
  
                 #get action from policy
                 tfprob = sess.run(probablility,feed_dict={observations: x})
+
+                #cambiar teclas
                 #action = 1 if np.random.uniform() < tfprob else 0
                 action = env.action_space.sample()
                 #will need to rework action to be more generic, not just 1 or 0
