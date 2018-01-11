@@ -52,15 +52,15 @@ if __name__ == '__main__':
     # Training
  
     #adam = tf.train.AdamOptimizer(learning_rate=learn_rate)
-    #adam = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
-    adam = tf.train.GradientDescentOptimizer(learning_rate=learn_rate)
+    #backP = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+    backP = tf.train.GradientDescentOptimizer(learning_rate=learn_rate)
  
     w1_gradent = tf.placeholder(tf.float32,name="batch_gradent1")
  
     w2_gradent = tf.placeholder(tf.float32,name="batch_gradent2")
  
     batch_gradent = [w1_gradent, w2_gradent]
-    update_gradent = adam.apply_gradients(zip(batch_gradent, training_variables))
+    update_gradent = backP.apply_gradients(zip(batch_gradent, training_variables))
  
     max_episodes = 2000
     max_steps = 500
