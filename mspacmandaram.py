@@ -119,15 +119,15 @@ if __name__ == '__main__':
                 # cambiar teclas
                 #action = 1 if np.random.uniform() < tfprob else 0
 
-                #action = env.action_space.sample()
+                ##action = env.action_space.sample()
                 
                 # will need to rework action to be more generic, not just 1 or 0
 
-                ramd = np.arange(5)
+                ramd = np.arange(4)
                 action = np.random.choice(ramd)
 
 
-                print("action: ", action)
+                print("action: ", np.random.uniform())
 
                 xs.append(x)  # observation
                 y = 1 if action == 0 else 0  # something about fake lables, need to investigate
