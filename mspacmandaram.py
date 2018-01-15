@@ -9,7 +9,7 @@ import math
 envSize = 128
 # 100 #number of neurons in hidden layer(n de neruronas en la capa oculta)
 H = 100
-batch_number = 50  # 50 size of batches for training (lotes para entrenamiento)
+batch_number = 128  # 50 size of batches for training (lotes para entrenamiento) de 50 a 128
 learn_rate = .01  # taza de aprendizaje
 
 # Este algoritmo se basa en los mismos principios que rigen la actualizacion de parametros
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     training_variables = tf.trainable_variables() # retorna una lista de objetos variables
 
     #[None, 1]La forma del tensor a alimentar (opcional). Si la forma no esta especificada, puede alimentar un tensor de cualquier forma.
-    input_y = tf.placeholder(tf.float32, [None, 1], name="input_y")
+    input_y = tf.placeholder(tf.float32, [None, 4], name="input_y")#de 1 a 4
 
     advantage = tf.placeholder(tf.float32, name="reward_signal") # tensor para almacenar ventajas(reward signal)
 
@@ -72,6 +72,9 @@ if __name__ == '__main__':
                                                             # compara ambas listas buscando las variaciones
 
     # Training
+
+    global_step = tf.Variable(0, trainable=False, name='global_step')
+
 
     #adam = tf.train.AdamOptimizer(learning_rate=learn_rate)
     #backP = tf.train.GradientDescentOptimizer(0.1).minimize(cost)   # learning_rate: Un tensor o un valor de coma flotante. La tasa de aprendizaje a usar
@@ -106,31 +109,40 @@ if __name__ == '__main__':
             gradBuffer[ix] = grad * 0
 
         for episode in xrange(max_episodes):
-            observation = env.reset()
+            observation = env.reset()# dataJson[i]
             for step in xrange(max_steps):
                 if(step == (max_steps - 1)):
                     print 'Made 500 steps!'
                 env.render()
-                x = np.reshape(observation, [1, envSize])
+                x = np.reshape(observation, [1, envSize])## dataJson[i]
 
                 # get action from policy
                 tfprob = sess.run(probablility, feed_dict={observations: x})
 
                 # cambiar teclas
-                #action = 1 if np.random.uniform() < tfprob else 0
+                random = np.random.uniform()
+                #random = np.arange(4)
+
+                 
+                action = 1 if random< tfprob else 1#   1   0
 
                 ##action = env.action_space.sample()
                 
                 # will need to rework action to be more generic, not just 1 or 0
 
-                ramd = np.arange(4)
-                action = np.random.choice(ramd)
+                
+                #action = np.random.choice(ramd)
+                #print("X: ", x)
+                print("np.random.uniform(): ", random)
+                print("tfprob: ", tfprob)
+                print("action: ", action)
 
 
-                print("action: ", np.random.uniform())
+                #q_values = sess.run(probablility, feed_dict={observations: x})
+                #action = epsilon_greedy(q_values, step)
 
-                xs.append(x)  # observation
-                y = 1 if action == 0 else 0  # something about fake lables, need to investigate
+                xs.append(x)  # observation   1   0
+                y = 1 if action == 0 else 1  # something about fake lables, need to investigate
                 ys.append(y)
 
                 # run an action
