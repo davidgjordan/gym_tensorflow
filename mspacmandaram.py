@@ -122,12 +122,32 @@ if __name__ == '__main__':
 
                 # cambiar teclas
                 random = np.random.uniform()
+                print("tfprob1: ", tfprob)
+                print("random: ", random)
+                #tfprob = tfprob * random
                 #random = np.arange(4)
+                
+                cuarto = tfprob/4
+
+                if random < cuarto:
+                    action = 0
+                elif random > cuarto and random < cuarto*2:
+                    action = 1
+                elif random > cuarto*2 and random < cuarto*3:
+                    action = 2
+                else:
+                    action = 3
+                
+                # cuarto = random/4
+                # if tfprob < random:
+                #     action = 0
+                # elif tfprob > random:
+                #     action = 1
+                # else:
+                #     action = 3
 
                  
-                action = 1 if random< tfprob else 0#   1   0
-
-                ##action = env.action_space.sample()
+                #action = 1 if random< tfprob else 0#   1   0
                 
                 # will need to rework action to be more generic, not just 1 or 0
 
@@ -135,8 +155,7 @@ if __name__ == '__main__':
                 #action = np.random.choice(ramd)
                 #print("X: ", x)
                 print("np.random.uniform(): ", random)
-                print("tfprob: ", tfprob)
-                print("action: ", action)
+                print("tfprob2: ", tfprob[0][0])
                 print("contador: ", contador)
                 contador+=1
 
@@ -144,7 +163,19 @@ if __name__ == '__main__':
                 #action = epsilon_greedy(q_values, step)
 
                 xs.append(x)  # observation   1   0
-                y = 1 if action == 0 else 0  # something about fake lables, need to investigate
+                
+                # if action == 1 :
+                #     y = 4
+                # elif action == 2:
+                #     y = 3
+                # elif action == 3:
+                #     y = 2
+                # else:
+                #     y = 1
+
+                y = action
+                print("action: ", y)
+                #y = 1 if action == 0 else 0  # something about fake lables, need to investigate
                 ys.append(y)
 
                 # run an action
@@ -183,15 +214,15 @@ if __name__ == '__main__':
                         for ix, grad in enumerate(gradBuffer):
                             gradBuffer[ix] = grad * 0
 
-                        running_reward = reward_sum if running_reward is None else (
-                            ((running_reward * episode_number - 50) + (reward_sum * 50)) / episode_number)
-                        print 'Average reward for episode %f. total average reward %f' % (reward_sum / batch_number, running_reward / batch_number)
+                        #running_reward = reward_sum if running_reward is None else (
+                        #    ((running_reward * episode_number - 50) + (reward_sum * 50)) / episode_number)
+                        #print 'Average reward for episode %f. total average reward %f' % (reward_sum / batch_number, running_reward / batch_number)
 
-                        if reward_sum / batch_number > 475:
-                            print 'Task solved in', episode_number, 'episodes!'
-                            reward_sum = 0
-                            break
-                        reward_sum = 0
+                        # if reward_sum / batch_number > 475:
+                        #     print 'Task solved in', episode_number, 'episodes!'
+                        #     reward_sum = 0
+                        #     break
+                        # reward_sum = 0
                     break
 
     env.monitor.close()

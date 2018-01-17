@@ -1,21 +1,19 @@
 #!/usr/bin/env python
-
 import gym
 import numpy as np
 import tensorflow as tf
 import time
 
-_actions = (1, 4, 5)
 
 
 class PolicyGradientAgent(object):
 
     def __init__(self, hparams, sess):
 
-        # initialization
+        # inicializamos prompidad seess(sension tf)
         self._s = sess
 
-        # build the graph  tf.float32, [None, envSize], name="input_x"  ---tf.float32,  shape=[None, hparams['input_size']]
+        # construir tensor de entrada tf.float32, [None, envSize], name="input_x"  ---tf.float32,  shape=[None, hparams['input_size']]
         self._input = tf.placeholder(tf.float32,
                                      shape=[None, hparams['input_size']])
 
@@ -24,16 +22,19 @@ class PolicyGradientAgent(object):
             num_outputs=hparams['hidden_size'],
             activation_fn=tf.nn.relu)
 
-        logits = tf.contrib.layers.fully_connected(
+        #crea una variable llamada weights, lo que representa una matriz de peso completamente 
+        # conectado, que se multiplica 
+        # por el inputspara producir una tensor de las unidades ocultas
+        weights = tf.contrib.layers.fully_connected(
             inputs=hidden1,
             num_outputs=hparams['num_actions'],
             activation_fn=None)
 
-        # op to sample an action
-        self._sample = tf.reshape(tf.multinomial(logits, 1), [])
+        # para generar una accion
+        self._reshapeModel = tf.reshape(tf.multinomial(weights, 1), [])
 
-        # add tiny number to avoid sending zero to log
-        log_prob = tf.log(tf.nn.softmax(logits) + 1e-8)
+        # agregue un numero pequeo para evitar enviar cero al registro
+        log_prob = tf.log(tf.nn.softmax(weights) + 1e-8)
 
         # training part of graph
         self._acts = tf.placeholder(tf.int32)  # tf.float32, [None, 1]
@@ -48,13 +49,16 @@ class PolicyGradientAgent(object):
         loss = -tf.reduce_sum(tf.multiply(act_prob, self._advantages))
         self._debug = loss
 
-        # update
+        # update GradientDescentOptimizer        optimizer = tf.train.RMSPropOptimizer(hparams['learning_rate'])
         optimizer = tf.train.RMSPropOptimizer(hparams['learning_rate'])
         self._train = optimizer.minimize(loss)
 
     def act(self, observation):
         # get one action, by sampling  HACER Q ESTE METODO DEVUELVA UN NUMBER DEL 0 A 4
-        return self._s.run(self._sample, feed_dict={self._input: [observation]})
+        act = self._s.run(self._reshapeModel, feed_dict={self._input: [observation]})
+        #print("act ", act)
+
+        return act
 
     def train_step(self, obs, acts, advantages):
         batch_feed = {self._input: obs,
@@ -75,10 +79,11 @@ def policy_rollout(env, agent):
         obs.append(observation)
 
         action = agent.act(observation)
-        print("action: ", action)
+
         observation, reward, done, _ = env.step(
             action)  # action   _actions[action]
-
+        #print ('Ations: ', action)
+        #print ('observations: ', observation)        
         acts.append(action)
         rews.append(reward)
 
@@ -98,20 +103,22 @@ def main():
 
     monitor_dir = '/tmp/cartpole_exp1'
     # env.monitor.start(monitor_dir, force=True)
+    max_episodes = 2000
+    max_steps = 500
 
     # hyper parameters
     hparams = {
         # env.observation_space.shape[0]
-        'input_size': env.observation_space.shape[0],
-        'hidden_size': 128,  # 36
+        'input_size': 128,
+        'hidden_size': 100,  # 36
         'num_actions': env.action_space.n,  # env.action_space.n
         'learning_rate': 0.05
     }
 # ValueError: Cannot feed value of shape (1, 210, 160, 3) for Tensor u'Placeholder:0', which has shape '(?, 210)
     # environment params
-    eparams = {
-        'num_batches': 300,
-        'ep_per_batch': 50
+    eparams = { 
+        'num_batches': 500,
+        'ep_per_batch': 100
     }
 
     with tf.Session() as sess:  # tf.Session() as sess:  tf.Graph().as_default(), tf.Session() as sess
@@ -120,6 +127,7 @@ def main():
 
         sess.run(tf.initialize_all_variables())
 
+        #for batch in xrange(max_episodes):
         for batch in xrange(eparams['num_batches']):
             time.sleep(1)
 
@@ -127,12 +135,15 @@ def main():
 
             b_obs, b_acts, b_rews = [], [], []
 
+            #for _ in xrange(max_steps):
             for _ in xrange(eparams['ep_per_batch']):
 
                 obs, acts, rews = policy_rollout(env, agent)
+                
                 print ('Ations: ', acts)
+                #print ('Ations: ',obs)
 
-                print 'Episode steps: {}'.format(len(obs))
+                #print 'Episode steps: {}'.format(len(obs))
 
                 b_obs.extend(obs)
                 b_acts.extend(acts)
@@ -140,14 +151,15 @@ def main():
                 advantages = process_rewards(rews)
                 b_rews.extend(advantages)
 
-            # update policy
-            # normalize rewards; don't divide by 0
-            b_rews = b_rews - np.mean(b_rews)
-            std = np.std(b_rews)
+            # actualizo la politica de entrenamiento
+            # y normalizo los rewards; don't divide by 0
+            b_rews = b_rews - np.mean(b_rews) #devuelve el promedio de los elementos de la matriz
+            std = np.std(b_rews) #Calcular la desviacion estandar a lo largo del eje especificado
+                                    #Devuelve la desviacion estandar, una medida de la propagacion de una distribucion, de los elementos de la matri 
             if std != 0.0:
                 b_rews = b_rews / std
 
-            # nuevas observaciones procesadas mandar
+            # mandar nuevas observaciones procesadas 
             agent.train_step(b_obs, b_acts, b_rews)
 
         env.monitor.close()
