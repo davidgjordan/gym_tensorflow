@@ -15,39 +15,36 @@ class PolicyGradientAgent(object):
 
         # construir tensor de entrada tf.float32, [None, envSize], name="input_x"  ---tf.float32,  shape=[None, hparams['input_size']]
         self._input = tf.placeholder(tf.float32,
-                                     shape=[None, hparams['input_size']])#128
+                                     shape=[None, hparams['input_size']])
 
         hidden1 = tf.contrib.layers.fully_connected(
             inputs=self._input,
-            num_outputs=hparams['hidden_size'],# 100  salidas de la capa oculta
+            num_outputs=hparams['hidden_size'],
             activation_fn=tf.nn.relu)
 
         # crea una variable llamada weights, lo que representa una matriz de peso completamente
         # conectado, que se multiplica
         # por el inputspara producir una tensor de las unidades ocultas
-        weights = tf.contrib.layers.fully_connected( # se vincula directamente con la anterior capa hidden1   # logits
-            inputs=hidden1,  
-            num_outputs=hparams['num_actions'],   # creo por defecto 4
+        weights = tf.contrib.layers.fully_connected(
+            inputs=hidden1,
+            num_outputs=hparams['num_actions'],
             activation_fn=None)
 
         # para generar una accion
-        self._reshapeModel = tf.reshape(tf.multinomial(weights, 1), [])# remodela el tensor 
-                                #de mmuestras obtenidas q devuelve la mulotinomail segun los pesos  al tamano de una lista
+        self._reshapeModel = tf.reshape(tf.multinomial(weights, 1), [])
 
-
-        # calcula el logaritmo natural de los pesos,   agregue un numero pequeo para evitar enviar cero al registro
-        log_prob = tf.log(tf.nn.softmax(weights) + 1e-8) # logits w
+        # agregue un numero pequeo para evitar enviar cero al registro
+        log_prob = tf.log(tf.nn.softmax(weights) + 1e-8)
 
         # auxiliar para las actiones
-        self._acts = tf.placeholder(tf.int32)  # tf.float32, [None, 1]  es un tensor de entradas
+        self._acts = tf.placeholder(tf.int32)  # tf.float32, [None, 1]
         # auxiliar para las ventajas
-        self._advantages = tf.placeholder(tf.float32)  # auxiliar para las ventajas
+        self._advantages = tf.placeholder(tf.float32)
 
-        # creamos una matriz de acciones probables segun este indicie de acciones aleatores
+        # creamos una matroz de acciones probables segun este indicie de acciones aleatores
         #  para iniciar el step
-        indices = tf.range(0, tf.shape(log_prob)[  # desde cero hasta 
+        indices = tf.range(0, tf.shape(log_prob)[
                            0]) * tf.shape(log_prob)[1] + self._acts
-
         act_prob = tf.gather(tf.reshape(log_prob, [-1]), indices)
 
         # auxiliar para guardar las perdidas calculadas en vase a las ventajas

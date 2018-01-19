@@ -13,25 +13,28 @@ class PolicyGradientAgent(object):
 
         self._s = sess
 
+
+        # una variable q si o si necesita ser alimentada
         # construir tensor de entrada tf.float32, [None, envSize], name="input_x"  ---tf.float32,  shape=[None, hparams['input_size']]
         self._input = tf.placeholder(tf.float32,
-                                     shape=[None, hparams['input_size']])
+                                     shape=[None, hparams['input_size']])# 128
 
-        hidden1 = tf.contrib.layers.fully_connected(
+        hidden1 = tf.contrib.layers.fully_connected( # creamos un tensor de pesos ocultas q se comunica directam con los input
             inputs=self._input,
-            num_outputs=hparams['hidden_size'],
+            num_outputs=hparams['hidden_size'],  # 100  salidas de la capa oculta
             activation_fn=tf.nn.relu)
 
         # crea una variable llamada weights, lo que representa una matriz de peso completamente
         # conectado, que se multiplica
         # por el inputspara producir una tensor de las unidades ocultas
         weights = tf.contrib.layers.fully_connected(
-            inputs=hidden1,
-            num_outputs=hparams['num_actions'],
+            inputs=hidden1,  # se vincula directamente con la anterior capa hidden1
+            num_outputs=hparams['num_actions'], # creo por defecto 4
             activation_fn=None)
 
         # para generar una accion
-        self._reshapeModel = tf.reshape(tf.multinomial(weights, 1), [])
+        self._reshapeModel = tf.reshape(tf.multinomial(weights, 1), [])# remodela el tensor 
+                                #de mmuestras obtenidas q devuelve la mulotinomail segun los pesos  al tamano de una lista
 
         # agregue un numero pequeo para evitar enviar cero al registro
         log_prob = tf.log(tf.nn.softmax(weights) + 1e-8)
