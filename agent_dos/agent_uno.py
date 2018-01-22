@@ -46,18 +46,18 @@ with tf.Session() as sess:
     sess.run(init)
     for epoca_i in range(1000):
         lotex, lotey = mnist.train.next_batch(3)
-        print ("epoca_i:", epoca_i)
+        #print ("epoca_i:", epoca_i)
         #print ("lotex:", lotex)
-        #print ("lotey:", lotey)
+        print ("lotey:", lotey)
         # for data in lotex:
         #   print ("data XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX: ", data)
         # for data in lotey:
-        print ("data YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY: ", lotey)
+        #print ("data YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY: ", lotey)
 
         sess.run(optimizador, feed_dict={x: lotex, yR: lotey})
         if (epoca_i % 50 == 0):
-            pass
-            #avance(epoca_i, sess, lotex, lotey)
+            # pass
+            avance(epoca_i, sess, lotex, lotey)
            #print('RESULTADO FINAL: ',sess.run(accuracy, feed_dict={x: mnist.test.images,yR: mnist.test.labels}))
            #print ('Resultado de una imagen',sess.run(Produccion,feed_dict={x: mnist.test.images[5].reshape(1,784)}))
 ''' Epoca: 0    - Costo: 1.8      Certeza: 0.111

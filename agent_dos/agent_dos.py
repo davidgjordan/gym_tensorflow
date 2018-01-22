@@ -5,78 +5,132 @@ import gym
 # La imagenes tienen dimension de 28x28
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
-# GYM
+# #  #  # # # # # # # # # GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-list_obs, list_action_esperadas = [], []
+list_obs_por_juego, list_action_esperadas_por_juego = [], []
 
 env = gym.make('MsPacman-ram-v0')
 tam_teclas_disponibles = env.action_space.n  # el pacman es  9
 
-for i_episode in range(10):
-    observation = env.reset()
-    aux_reward = 0
-    reward = 0
-    done = False
-    aux_action, aux_obs = [], []
-    while not done:
-        env.render()
-        action = env.action_space.sample()
-        observation, reward, done, info = env.step(action)
-        aux_reward += reward
 
-        aux_action.append(action)
-        aux_obs.append(observation)
+def correr_episodios_gym():
+    for i_episode in range(150):
+        observation = env.reset()
+        aux_reward = 0
+        reward = 0
+        done = False
+        aux_action, aux_obs = [], []
+        while not done:
+            env.render()
+            action = env.action_space.sample()
+            observation, reward, done, info = env.step(action)
+            aux_reward += reward
 
-        # print("Action: ", action)
-        # print("Reward: ", reward)
+            aux_action.append(action)
+            aux_obs.append(observation)
 
-    if aux_reward > 250.0:
-        list_obs.append(aux_obs)
-        list_action_esperadas.append(aux_action)
-        print("este juego paso: ", i_episode)
-
-    # print("juego: ", i_episode)
-    # print("Total Reward por el juego: ", aux_reward)
-    aux_reward = 0
-
-for action in list_action_esperadas:
-    # print("action: ", action)
-    pass
-    # LISTAS CARGADAS CON OBSEVATIONS Y ACCIONES ESPERADAS AHORA NORMALIZAR LAS SALIDAS ESPERADAS
-
-list_normalize_actions, aux = [], []
-for vec_action_por_juego in list_action_esperadas:
-    vec_aux = []
-    for act in vec_action_por_juego:
-        aux = np.zeros(((tam_teclas_disponibles)))
-        # aux = np.linspace(0, 0.01, (tam_teclas_disponibles + 1))
-        aux[act] = 1
-        vec_aux.append(aux)
-
-    list_normalize_actions.append(vec_aux)
-
-for vec_action in list_normalize_actions:
-    #print("vec_action : ", vec_action)
-    for data in vec_action:
-        # print(data)
-        pass
+        if aux_reward > 250.0:
+            list_obs_por_juego.append(aux_obs)
+            list_action_esperadas_por_juego.append(aux_action)
+            print("este juego paso: ", i_episode)
+        aux_reward = 0
 
 
-# RED NEURONAL   REVISAR LAS ENTRADAS Y  VOLVER LOS OBSERVATIONS Y ACTIONS A MATRIZES COMO EN EL AGENT UNO
+correr_episodios_gym()
+
+mat_normalize_obs = None
+mat_normalize_actions = None
+
+
+def get_normalizar_actions():
+    vec_aux_ac = []
+    for vec_action_por_juego in list_action_esperadas_por_juego:
+        for act in vec_action_por_juego:
+            aux = np.zeros((tam_teclas_disponibles))
+            aux[act] = 1
+            vec_aux_ac.append(aux)
+    mat_normalize_actions = np.vstack(vec_aux_ac)
+    return mat_normalize_actions, vec_aux_ac
+
+
+get_normalizar_actions()
+
+
+def get_normalizar_observations():
+    vec_aux_obs = []
+    for vec_obs_por_juego in list_obs_por_juego:
+        for obs in vec_obs_por_juego:
+            vec_aux_obs.append(obs)
+    mat_normalize_obs = np.vstack(vec_aux_obs)
+    return mat_normalize_obs, vec_aux_obs
+
+
+get_normalizar_observations()
+
+
+tam_mat_act, _ = get_normalizar_actions()
+tam_mat_obs, _ = get_normalizar_observations()
+print len(tam_mat_act)
+print len(tam_mat_obs)
+
+
+_, aux_obs_copy_pila = get_normalizar_observations()
+_, aux_act_copy_pila = get_normalizar_actions()
+
+
+def get_lote(tam_lote):
+    lis_aux_obs = []
+    lis_aux_act = []
+    for i in range(tam_lote):
+        if  aux_obs_copy_pila:
+            data_o = aux_obs_copy_pila.pop()
+            data_a = aux_act_copy_pila.pop()
+            lis_aux_obs.append(data_o)
+            lis_aux_act.append(data_a)
+        else:
+            break
+    mat_normalize_obs = None
+    mat_normalize_actions = None
+    if lis_aux_act:
+        mat_normalize_obs = np.vstack(lis_aux_obs)
+        mat_normalize_actions = np.vstack(lis_aux_act)
+    return mat_normalize_obs, mat_normalize_actions
+
+
+#mat_obs, mat_ac = get_lote(3)
+#
+#print("Actions: ")
+#print(mat_ac)
+#print("Observations: ")
+#print(mat_obs)
+#
+#
+#mat_obs, mat_ac = get_lote(5)
+#
+#print("Actions: ")
+#print(mat_ac)
+#print("Observations: ")
+#print(mat_obs)
+# #  #  # # # # # # # # # FIN GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+
+# #  # # # # # # # ## ##  RED NEURONAL   REVISAR LAS ENTRADAS Y  VOLVER LOS OBSERVATIONS Y ACTIONS A MATRIZES COMO EN EL AGENT UNO
 # imagen del numero descompuesta a un vector
-x_input_observations = tf.placeholder(tf.float32, [None, 1])
+x_input_observations = tf.placeholder(tf.float32, [None, 128])
 # Matriz de pesos, 784 para recibir la observ, 10 por las posible salidas de teclas
-Pesos = tf.Variable(tf.zeros([1, 1]))
+Pesos = tf.Variable(tf.zeros([128, tam_teclas_disponibles]))
                                     # seria conveniete normalizae las teclas en [0,0,1,0,0,0,0,0] proporcionaron la tecla 2 etc
-bias = tf.Variable(tf.zeros([1]))  # Vector con bias
+bias = tf.Variable(tf.zeros([tam_teclas_disponibles]))  # Vector con bias
 # La operacion que se hara en los nodos que reciben entradas
 y_oper_nodos_entradas = tf.matmul(x_input_observations, Pesos) + bias
 # Matriz con las acciones esperadas de nuestro set de datos
-yR_salidas_aciones_esperadas = tf.placeholder(tf.float32, [None, 1])
+yR_salidas_aciones_esperadas = tf.placeholder(tf.float32, [None, tam_teclas_disponibles])
 # Definir la funcion de costo entropia cruzada (Cross Entropy) para poder medir el error. La salida sera con Softmax
 fun_softmax_medir_error = tf.nn.softmax_cross_entropy_with_logits(
     labels=yR_salidas_aciones_esperadas, logits=y_oper_nodos_entradas)
 costo = tf.reduce_mean(fun_softmax_medir_error)
+
 optimizador = tf.train.GradientDescentOptimizer(0.5).minimize(costo)
 # Correr la grafica computacional
 prediccion = tf.equal(tf.argmax(y_oper_nodos_entradas, 1), tf.argmax(
@@ -95,21 +149,38 @@ init = tf.global_variables_initializer()
 def avance(epoca_i, sess, last_features, last_labels):
     costoActual = sess.run(costo, feed_dict={
                            x_input_observations: last_features, yR_salidas_aciones_esperadas: last_labels})
+    mat_normalize_obs , _ = get_normalizar_observations()                           
+    mat_normalize_actions , _ = get_normalizar_actions()                           
     Certeza = sess.run(exactitud_predicciones, feed_dict={
-                       x_input_observations: list_obs, yR_salidas_aciones_esperadas: list_normalize_actions})
+                       x_input_observations: mat_normalize_obs, yR_salidas_aciones_esperadas: mat_normalize_actions})
     print(
         'Epoca: {:<4} - Costo: {:<8.3} Certeza: {:<5.3}'.format(epoca_i, costoActual, Certeza))
 
+def dame_lote( tam_lotes):
+    aux_obs_copy = list_obs
+    aux_ac_copy = list_normalize_actions
+    aux_obs , aux_act = [],[]
+    for i in range(tam_lotes):
+        aux_obs = aux_obs_copy.pop()
+        aux_act = aux_ac_copy.pop()
+    mat_res_obs = np.vstack(aux_obs)
+    mat_res_act = np.vstack(aux_act)
+    return mat_res_obs, mat_res_act
+    
+
 with tf.Session() as sess:
     sess.run(init)
-    for epoca_i in range(1):
+    epoca_i = 0
+    while len(aux_act_copy_pila) != 0:
+
+    #for epoca_i in range(1000):
         #lotex, lotey = mnist.train.next_batch(100)# lotex = observaciones   lotey = acciones esperadas
-        lotex = list_obs
-        lotey = list_normalize_actions
-        #print("lotex: ", lotex)
-        print("lotey: ", lotey)
+                
+        lotex, lotey = get_lote(20)
+        
         sess.run(optimizador, feed_dict={x_input_observations: lotex, yR_salidas_aciones_esperadas: lotey})
-        if (epoca_i%50==0):pass
-            #avance(epoca_i, sess, lotex, lotey)
+        if (epoca_i%50==0):#pass
+            avance(epoca_i, sess, lotex, lotey)
+        epoca_i+=1
     #print('RESULTADO FINAL: ',sess.run(exactitud_predicciones, feed_dict={x_input_observations: mnist.test.images,yR_salidas_aciones_esperadas: mnist.test.labels}))
     #print ('Resultado de una imagen',sess.run(Produccion,feed_dict={x_input_observations: mnist.test.images[5].reshape(1,784)}))
