@@ -14,7 +14,7 @@ tam_teclas_disponibles = env.action_space.n  # el pacman es  9
 
 
 def correr_episodios_gym():
-    for i_episode in range(150):
+    for i_episode in range(15):
         observation = env.reset()
         aux_reward = 0
         reward = 0
@@ -181,6 +181,14 @@ with tf.Session() as sess:
         sess.run(optimizador, feed_dict={x_input_observations: lotex, yR_salidas_aciones_esperadas: lotey})
         if (epoca_i%50==0):#pass
             avance(epoca_i, sess, lotex, lotey)
+            lis_obs, ___ = get_normalizar_observations()
+            mat_ob = np.vstack(lis_obs[5])
+            print("mat 5: ", lis_obs[5].reshape(1,128))
+            print ('Resultado de una imagen',sess.run(Produccion,feed_dict={x_input_observations: lis_obs[5].reshape(1,128)}))
+            #print ('Resultado de una imagen',sess.run(Produccion,feed_dict={x_input_observations: mat_normalize_obs[5].reshape(1,128) }))
         epoca_i+=1
-    #print('RESULTADO FINAL: ',sess.run(exactitud_predicciones, feed_dict={x_input_observations: mnist.test.images,yR_salidas_aciones_esperadas: mnist.test.labels}))
-    #print ('Resultado de una imagen',sess.run(Produccion,feed_dict={x_input_observations: mnist.test.images[5].reshape(1,784)}))
+
+##print('RESULTADO FINAL: ',sess.run(exactitud_predicciones, feed_dict={x_input_observations: mnist.test.images,yR_salidas_aciones_esperadas: mnist.test.labels}))
+#lis_obs, aux_obs_copy_pila = get_normalizar_observations()
+#mat_ob = np.vstack(lis_obs[5])
+#print ('Resultado de una imagen',sess.run(Produccion,feed_dict={x_input_observations: mat_ob}))
