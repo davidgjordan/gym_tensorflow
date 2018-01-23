@@ -46,9 +46,9 @@ with tf.Session() as sess:
     sess.run(init)
     for epoca_i in range(1000):
         lotex, lotey = mnist.train.next_batch(3)
-        # print ("epoca_i:", epoca_i)
-        # print ("lotex:", lotex)
-        #print ("lotey:", lotey)
+        #print ("epoca_i:", epoca_i)
+        print ("lotex:", lotex)
+        print ("lotey:", lotey)
         # for data in lotex:
         #   print ("data XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX: ", data)
         # for data in lotey:

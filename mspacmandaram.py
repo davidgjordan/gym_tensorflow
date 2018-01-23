@@ -37,8 +37,8 @@ if __name__ == '__main__':
     # Setup tensorflow
     tf.reset_default_graph()# Borra la pila de graficos predeterminada y restablece el grafico global predeterminado
 
-    observations = tf.placeholder(tf.float32, [None, envSize], name="input_x")
-    w1 = tf.get_variable("w1", shape=[envSize, H],#Esta operacion devuelve un tensor de enteros 1-D que representa la forma de input
+    observations = tf.placeholder(tf.float32, [None, envSize], name="input_x") # 128
+    w1 = tf.get_variable("w1", shape=[envSize, H],#Esta operacion devuelve un tensor de enteros 1-D que representa la forma de input  # 128  100
                          initializer=tf.contrib.layers.xavier_initializer())# Un inicializador para una matriz de peso.
                                                                             #Este inicializador esta disenhado para mantener la escala de los 
                                                                             # degradados aproximadamente igual en todas las capas. En una distribucion 
@@ -46,8 +46,9 @@ if __name__ == '__main__':
                                                                             # [-x, x]y para la distribucion normal sqrt(2. / (in + out))se usa una 
     #capa oculta 1                                                                        # desviacion estandar de .
     hidden_layer_1 = tf.nn.relu(tf.matmul(observations, w1))# creamos la primera capa oculta multiplicando matrizes de obsevaciones por la matriz de peso 1
-    w15 = tf.get_variable("w15", shape=[H, H],
+    w15 = tf.get_variable("w15", shape=[H, H],    # 100 100
                           initializer=tf.contrib.layers.xavier_initializer())
+                          
     hidden_layer_2 = tf.nn.relu(tf.matmul(hidden_layer_1, w15))
     w2 = tf.get_variable("w2", shape=[H, 1],
                          initializer=tf.contrib.layers.xavier_initializer())
