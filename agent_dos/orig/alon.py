@@ -31,31 +31,36 @@ def sigmaprime(x):
     return tf.multiply(sigma(x), tf.subtract(tf.constant(1.0), sigma(x)))
 
 
-d_z_2 = tf.multiply(diff, sigmaprime(z_2))
-d_b_2 = d_z_2
-d_w_2 = tf.matmul(tf.transpose(a_1), d_z_2)
+# d_z_2 = tf.multiply(diff, sigmaprime(z_2))
+# d_b_2 = d_z_2
+# d_w_2 = tf.matmul(tf.transpose(a_1), d_z_2)
 
-d_a_1 = tf.matmul(d_z_2, tf.transpose(w_2))
-d_z_1 = tf.multiply(d_a_1, sigmaprime(z_1))
-d_b_1 = d_z_1
-d_w_1 = tf.matmul(tf.transpose(a_0), d_z_1)
+# d_a_1 = tf.matmul(d_z_2, tf.transpose(w_2))
+# d_z_1 = tf.multiply(d_a_1, sigmaprime(z_1))
+# d_b_1 = d_z_1
+# d_w_1 = tf.matmul(tf.transpose(a_0), d_z_1)
 
 
-eta = tf.constant(0.5)
-step = [
-    tf.assign(w_1,
-              tf.subtract(w_1, tf.multiply(eta, d_w_1))), tf.assign(b_1,
-                                                                    tf.subtract(b_1, tf.multiply(eta,
-                                                                                                 tf.reduce_mean(d_b_1, axis=[0])))), tf.assign(w_2,
-                                                                                                                                               tf.subtract(w_2, tf.multiply(eta, d_w_2))), tf.assign(b_2,
-                                                                                                                                                                                                     tf.subtract(b_2, tf.multiply(eta,
-                                                                                                                                                                                                                                  tf.reduce_mean(d_b_2, axis=[0]))))
-]
+# eta = tf.constant(0.5)
+# step = [
+#     tf.assign(w_1,
+#               tf.subtract(w_1, tf.multiply(eta, d_w_1))), tf.assign(b_1,
+#                                                                     tf.subtract(b_1, tf.multiply(eta,
+#                                                                                                  tf.reduce_mean(d_b_1, axis=[0])))), tf.assign(w_2,
+#                                                                                                                                                tf.subtract(w_2, tf.multiply(eta, d_w_2))), tf.assign(b_2,
+#                                                                                                                                                                                                      tf.subtract(b_2, tf.multiply(eta,
+#                                                                                                                                                                                                                                   tf.reduce_mean(d_b_2, axis=[0]))))
+# ]
+
+cost = tf.multiply(diff, diff)
+step = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+
 
 # salida obtenida y salida esperada
 acct_mat = tf.equal(tf.argmax(a_2, 1), tf.argmax(y, 1))
 acct_res = tf.reduce_sum(tf.cast(acct_mat, tf.float32))
 
+Prod = tf.argmax(a_2, 1)
 sess = tf.InteractiveSession()
 sess.run(tf.global_variables_initializer())
 
@@ -63,9 +68,16 @@ for i in xrange(10000):
     batch_xs, batch_ys = mnist.train.next_batch(10)
     sess.run(step, feed_dict={a_0: batch_xs,
                               y: batch_ys})
+    #print("batch_xs:  ", batch_xs)
+    #print("batch_ys:  ", batch_ys)
     if i % 1000 == 0:
         res = sess.run(acct_res, feed_dict={a_0: mnist.test.images[:1000],
                                             y: mnist.test.labels[:1000]})
+        print ('Resultado de una imagen', sess.run(
+            acct_mat, feed_dict={a_0: mnist.test.images[2].reshape(1, 784), y: mnist.test.labels[2].reshape(1, 10)}))
+
+        print ('Resultado de una imagen2222 ', sess.run(
+            Prod, feed_dict={a_0: mnist.test.images[6].reshape(1, 784)}))
         print res
 
 

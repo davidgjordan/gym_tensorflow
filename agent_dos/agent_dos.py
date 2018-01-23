@@ -1,9 +1,7 @@
 import tensorflow as tf
-from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
 import gym
-# La imagenes tienen dimension de 28x28
-#mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+
 
 # #  #  # # # # # # # # # GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -14,7 +12,7 @@ tam_teclas_disponibles = env.action_space.n  # el pacman es  9
 print tam_teclas_disponibles
 
 def correr_episodios_gym():
-    for i_episode in range(100):
+    for i_episode in range(50):
         observation = env.reset()
         aux_reward = 0
         reward = 0
@@ -147,6 +145,10 @@ init = tf.global_variables_initializer()
 # Funcion que usaremos para ver que tan bien va a aprendiendo nuestro modelo
 
 
+# Add ops to save and restore all the variables.
+saver = tf.train.Saver()
+
+
 def avance(epoca_i, sess, last_features, last_labels):
     costoActual = sess.run(costo, feed_dict={
                            x_input_observations: last_features, yR_salidas_aciones_esperadas: last_labels})
@@ -172,6 +174,7 @@ with tf.Session() as sess:
         lotex, lotey = get_lote(3)
         
         opt = sess.run(optimizador, feed_dict={x_input_observations: lotex, yR_salidas_aciones_esperadas: lotey})
+        print("OPT: ", opt)
         print("XXXXXXXXXXXXX: ", lotex)
         print("YYYYYYYYYYYYY: ", lotey)
         if (epoca_i%50==0):
@@ -205,28 +208,13 @@ with tf.Session() as sess:
         aux_reward = 0
         #print("action elegida list: ", list_aux_ac)
             
+    ######SALVAR
+    save_path = saver.save(sess, "./tmp_dos/model.ckpt")
+    print("Model saved in file: %s" % save_path)
 
+    # aver.restore(sess, "/tmp/model.ckpt")
+    # print("Model restored.")  
 
 
 ## # # #  # ## # # # # # # # PROBANDO LA PREDCICION DE LA RED NEURONAL # # # # ##
 
-def probar_red():
-    with tf.Session() as sess:
-        sess.run(tf.initialize_all_variables())
-        for i_episode in range(15):
-            observation = env.reset()
-            aux_reward = 0
-            reward = 0
-            done = False
-            
-            while not done:
-                env.render()
-                action = sess.run(Produccion,feed_dict={x_input_observations: lis_obs[5].reshape(1,128)})
-                observation, reward, done, info = env.step(action)
-                aux_reward += reward
-
-            if aux_reward > 250.0:
-                list_obs_por_juego.append(aux_obs)
-                list_action_esperadas_por_juego.append(aux_action)
-                print("este juego paso: ", i_episode)
-            aux_reward = 0
