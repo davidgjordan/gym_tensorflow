@@ -37,11 +37,12 @@ class NNAgent():
         self._Produccion = tf.argmax(self._y_oper_nodos_entradas, 1)
         self._init = tf.global_variables_initializer()
 
-        _, self.aux_obs_copy_pila = get_normalizar_observations()
-        _, self.aux_act_copy_pila = get_normalizar_actions()
+        _, self._aux_obs_copy_pila = self.get_normalizar_observations()
+        _, self._aux_act_copy_pila = self.get_normalizar_actions()
         self._saver = tf.train.Saver()
 
-    def get_normalizar_actions():
+    # method private
+    def get_normalizar_actions(self):
         vec_aux_ac = []
         for vec_action_por_juego in self._list_action_esperadas_por_juego:
             for act in vec_action_por_juego:
@@ -51,7 +52,8 @@ class NNAgent():
         mat_normalize_actions = np.vstack(vec_aux_ac)
         return mat_normalize_actions, vec_aux_ac
 
-    def get_normalizar_observations():
+    # method private
+    def get_normalizar_observations(self):
         vec_aux_obs = []
         for vec_obs_por_juego in self._list_obs_por_juego:
             for obs in vec_obs_por_juego:
@@ -59,13 +61,14 @@ class NNAgent():
         mat_normalize_obs = np.vstack(vec_aux_obs)
         return mat_normalize_obs, vec_aux_obs
 
-    def get_lote(tam_lote):
+    # method private
+    def get_lote(self, tam_lote):
         lis_aux_obs = []
         lis_aux_act = []
         for i in range(tam_lote):
-            if self.aux_obs_copy_pila:
-                data_o = self.aux_obs_copy_pila.pop()
-                data_a = self.aux_act_copy_pila.pop()
+            if self._aux_obs_copy_pila:
+                data_o = self._aux_obs_copy_pila.pop()
+                data_a = self._aux_act_copy_pila.pop()
 
                 lis_aux_obs.append(data_o)
                 lis_aux_act.append(data_a)
@@ -78,33 +81,36 @@ class NNAgent():
             mat_normalize_actions = np.vstack(lis_aux_act)
         return mat_normalize_obs, mat_normalize_actions
 
-    def avance(epoca_i, _sess, last_features, last_labels):
-        costoActual = self._sess.run(costo, feed_dict={
-            self._x_input_observations: last_features, _yR_salidas_aciones_esperadas: last_labels})
-        mat_normalize_obs, _ = get_normalizar_observations()
-        mat_normalize_actions, _ = get_normalizar_actions()
+    # method private
+    def avance(self, epoca_i, _sess, last_features, last_labels):
+        costoActual = self._sess.run(self._costo, feed_dict={
+            self._x_input_observations: last_features, self._yR_salidas_aciones_esperadas: last_labels})
+        mat_normalize_obs, _ = self.get_normalizar_observations()
+        mat_normalize_actions, _ = self.get_normalizar_actions()
         Certeza = self._sess.run(_exactitud_predicciones, feed_dict={
             self._x_input_observations: mat_normalize_obs, self._yR_salidas_aciones_esperadas: mat_normalize_actions})
         print(
             'Epoca: {:<4} - Costo: {:<8.3} Certeza: {:<5.3}'.format(epoca_i, costoActual, Certeza))
 
-    def train():
+    # method public
+    def train(self):
         with tf.Session() as self._sess:
-            self._sess.run(_init)
+            self._sess.run(self._init)
             tf.global_variables_initializer()
             epoca_i = 0
-            while len(aux_act_copy_pila) != 0:
-                lotex, lotey = get_lote(3)
-                opt = self._sess.run(_optimizador, feed_dict={
+            while len(self._aux_act_copy_pila) != 0:
+                lotex, lotey = self.get_lote(3)
+                opt = self._sess.run(self._optimizador, feed_dict={
                                      self._x_input_observations: lotex, self._yR_salidas_aciones_esperadas: lotey})
                 if (epoca_i % 50 == 0):
-                    avance(epoca_i, _sess, lotex, lotey)
+                    self.avance(epoca_i, self._sess, lotex, lotey)
 
-                    lis_obs, ___ = get_normalizar_observations()
+                    lis_obs, ___ = self.get_normalizar_observations()
                     mat_ob = np.vstack(lis_obs[5])
                 epoca_i += 1
 
-    def probarTrain():
+    # method opcional
+    def probarTrain(self):
         for i_episode in range(10):
             observation = self._env.reset()
             aux_reward = 0
@@ -113,18 +119,19 @@ class NNAgent():
             list_aux_ac = []
 
             while not done:
-                env.render()
+                self._env.render()
                 action = self._sess.run(self._Produccion, feed_dict={
                                         self._x_input_observations: observation.reshape(1, _tam_nodos_entrada)})
                 #print("action elegida: ", action)
                 observation, reward, done, info = env.step(action)
                 aux_reward += reward
                 list_aux_ac.append(action[0])
-            if aux_reward > _measure_of_reward:
+            if aux_reward > self._measure_of_reward:
                 print("este juego paso o:: ", i_episode)
             aux_reward = 0
         #print("action elegida list: ", list_aux_ac)
 
+    # method public
     def saveTrain(save_path):
         # SALVAR
         # "./tmp_tres/model.ckpt")
@@ -171,3 +178,8 @@ correr_episodios_gym()
 sess = tf.Session()
 nnagent = NNAgent(env, sess, list_obs_por_juego,
                   list_action_esperadas_por_juego)
+
+nnagent.train()
+nnagent.probarTrain()
+nnagent.saveTrain("./tmp_tres/model.ckpt")
+#save_path = saver.save(sess, "./tmp_dos/model.ckpt")
