@@ -61,6 +61,7 @@ acct_mat = tf.equal(tf.argmax(a_2, 1), tf.argmax(y, 1))
 acct_res = tf.reduce_sum(tf.cast(acct_mat, tf.float32))
 
 Prod = tf.argmax(a_2, 1)
+
 sess = tf.InteractiveSession()
 sess.run(tf.global_variables_initializer())
 

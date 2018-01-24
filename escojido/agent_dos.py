@@ -87,30 +87,30 @@ class NNAgent():
             self._x_input_observations: last_features, self._yR_salidas_aciones_esperadas: last_labels})
         mat_normalize_obs, _ = self.get_normalizar_observations()
         mat_normalize_actions, _ = self.get_normalizar_actions()
-        Certeza = self._sess.run(_exactitud_predicciones, feed_dict={
+        Certeza = self._sess.run(self._exactitud_predicciones, feed_dict={
             self._x_input_observations: mat_normalize_obs, self._yR_salidas_aciones_esperadas: mat_normalize_actions})
         print(
             'Epoca: {:<4} - Costo: {:<8.3} Certeza: {:<5.3}'.format(epoca_i, costoActual, Certeza))
 
     # method public
-    def train(self):
-        with tf.Session() as self._sess:
-            self._sess.run(self._init)
-            tf.global_variables_initializer()
-            epoca_i = 0
-            while len(self._aux_act_copy_pila) != 0:
-                lotex, lotey = self.get_lote(3)
-                opt = self._sess.run(self._optimizador, feed_dict={
-                                     self._x_input_observations: lotex, self._yR_salidas_aciones_esperadas: lotey})
-                if (epoca_i % 50 == 0):
-                    self.avance(epoca_i, self._sess, lotex, lotey)
+    def train(self, repeticiones):
+        # with tf.Session() as self._sess:
+        self._sess.run(self._init)
+        tf.global_variables_initializer()
+        epoca_i = 0
+        while len(self._aux_act_copy_pila) != 0:
+            lotex, lotey = self.get_lote(3)
+            self._sess.run(self._optimizador, feed_dict={
+                self._x_input_observations: lotex, self._yR_salidas_aciones_esperadas: lotey})
+            if (epoca_i % 50 == 0):
+                self.avance(epoca_i, self._sess, lotex, lotey)
 
-                    lis_obs, ___ = self.get_normalizar_observations()
-                    mat_ob = np.vstack(lis_obs[5])
-                epoca_i += 1
+                lis_obs, ___ = self.get_normalizar_observations()
+                mat_ob = np.vstack(lis_obs[5])
+            epoca_i += 1
 
     # method opcional
-    def probarTrain(self):
+    def probar_train(self):
         for i_episode in range(10):
             observation = self._env.reset()
             aux_reward = 0
@@ -121,7 +121,7 @@ class NNAgent():
             while not done:
                 self._env.render()
                 action = self._sess.run(self._Produccion, feed_dict={
-                                        self._x_input_observations: observation.reshape(1, _tam_nodos_entrada)})
+                                        self._x_input_observations: observation.reshape(1, self._tam_nodos_entrada)})
                 #print("action elegida: ", action)
                 observation, reward, done, info = env.step(action)
                 aux_reward += reward
@@ -132,7 +132,7 @@ class NNAgent():
         #print("action elegida list: ", list_aux_ac)
 
     # method public
-    def saveTrain(save_path):
+    def save_train(self, save_path):
         # SALVAR
         # "./tmp_tres/model.ckpt")
         path = self._saver.save(self._sess, save_path)
@@ -140,9 +140,9 @@ class NNAgent():
 
 # # # # # # # # # # # # FIN CLASS # # # # # # # # # # # #
 
-# #  #  # # # # # # # # # GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
+# #  #  # # # # # # # # # TENSORFLOW  # # # # # # # # # # # # # # # # # # # # # # # # # #
 list_obs_por_juego, list_action_esperadas_por_juego = [], []
 
 env = gym.make('MsPacman-ram-v0')
@@ -176,10 +176,10 @@ def correr_episodios_gym():
 
 correr_episodios_gym()
 sess = tf.Session()
-nnagent = NNAgent(env, sess, list_obs_por_juego,
-                  list_action_esperadas_por_juego)
-
-nnagent.train()
-nnagent.probarTrain()
-nnagent.saveTrain("./tmp_tres/model.ckpt")
-#save_path = saver.save(sess, "./tmp_dos/model.ckpt")
+if list_obs_por_juego:
+    nnagent = NNAgent(env, sess, list_obs_por_juego,
+                      list_action_esperadas_por_juego)
+    nnagent.train(3)
+    nnagent.probar_train()
+    nnagent.save_train("./tmp_tres/model.ckpt")
+    #save_path = saver.save(sess, "./tmp_dos/model.ckpt")
