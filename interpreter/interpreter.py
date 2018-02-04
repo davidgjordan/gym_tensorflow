@@ -4,9 +4,7 @@ sys.path.insert(0,'../POC/agent/')
 
 #sys.path.insert(0,'/home/ubuntu/Desktop')
 
-from RandomAgent import *
-from NNAgentBuilder import *
-from play import *
+from NNAgentModified import *
 
 import gym
 import json
