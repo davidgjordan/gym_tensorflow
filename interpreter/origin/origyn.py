@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+import sys
+sys.path.insert(0,'/home/ubuntu/Desktop')
 import gym
-import tensorflow
 import tensorflow as tf
 import numpy as np
+import pygame
 
 
 # #  #  # # # # # # # # # GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -11,25 +13,44 @@ list_obs_por_juego, list_action_esperadas_por_juego = [], []
 
 env = gym.make('MsPacman-ram-v0')
 tam_teclas_disponibles = env.action_space.n  # el pacman es  9
-
+print tam_teclas_disponibles
+def display_arr(screen, arr, transpose, video_size):
+    arr_min, arr_max = arr.min(), arr.max()
+    arr = 255.0 * (arr - arr_min) / (arr_max - arr_min)
+    pyg_img = pygame.surfarray.make_surface(arr.swapaxes(0, 1) if transpose else arr)
+    pyg_img = pygame.transform.scale(pyg_img, video_size)
+    screen.blit(pyg_img, (0,0))
 
 def correr_episodios_gym():
-    for i_episode in range(30):
+    for i_episode in range(5):
         observation = env.reset()
         aux_reward = 0
         reward = 0
         done = False
         aux_action, aux_obs = [], []
+        ########################################
+        velocity = 5000
+        clock = pygame.time.Clock()
+        screen = pygame.display.set_mode((480,630))
+        pygame.display.set_caption(u'DEVINT-24 GAMES - NNAgent')
+        #########################################
         while not done:
-            env.render()
+            #env.render()
             action = env.action_space.sample()
-            observation, reward, done, info = env.step(action)
+            observation, reward, done, rgb_array = env.step(action)
             aux_reward += reward
 
             aux_action.append(action)
             aux_obs.append(observation)
+            #############################################
+            if observation is not None:################
+                display_arr(screen, rgb_array, True, (480,630))
+            pygame.display.flip()
+            clock.tick(velocity)
+        pygame.quit()
+        ###################################################
 
-        if aux_reward > 300:
+        if aux_reward > 250:
             list_obs_por_juego.append(aux_obs)
             list_action_esperadas_por_juego.append(aux_action)
             print("este juego paso: ", i_episode)
@@ -108,7 +129,7 @@ _sizeInputX = 12012
 _sizeNumberKeysY = -5
 def train():
     global _sizeInputX
-    _sizeInputX =128
+    _sizeInputX = 128
     global _sizeNumberKeysY
     _sizeNumberKeysY = 9
 train()
@@ -117,7 +138,7 @@ print("inputy: ",_sizeNumberKeysY)
 a_0 = tf.placeholder(tf.float32, [None, _sizeInputX])
 y = tf.placeholder(tf.float32, [None, _sizeNumberKeysY])
 
-middle = 30
+middle = 128
 w_1 = tf.Variable(tf.truncated_normal([_sizeInputX, middle]))
 b_1 = tf.Variable(tf.truncated_normal([1, middle]))
 w_2 = tf.Variable(tf.truncated_normal([middle, _sizeNumberKeysY]))
@@ -173,7 +194,7 @@ def play():
             
             action = sess.run(prod, feed_dict={
                                     a_0: observation.reshape(1, 128)})
-            #print("action elegida: ", action)
+            print("action elegida: ", action)
             
             observation, reward, done, info = env.step(action)
             aux_reward += reward
@@ -184,7 +205,7 @@ def play():
         aux_reward = 0
 play()
 saver = tf.train.Saver()
-save_path = saver.save(sess, "./tmp_dos_f/model.ckpt")
+save_path = saver.save(sess, "./tmp_seis_f/model.ckpt")
 print("Model saved in path: %s" % save_path)
 
 # for i in xrange(10000):
