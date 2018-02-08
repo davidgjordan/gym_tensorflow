@@ -7,6 +7,7 @@ import numpy as np
 import pygame
 
 
+
 # #  #  # # # # # # # # # GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 list_obs_por_juego, list_action_esperadas_por_juego = [], []
@@ -22,7 +23,7 @@ def display_arr(screen, arr, transpose, video_size):
     screen.blit(pyg_img, (0,0))
 
 def correr_episodios_gym():
-    for i_episode in range(5):
+    for i_episode in range(1):
         observation = env.reset()
         aux_reward = 0
         reward = 0
@@ -47,7 +48,6 @@ def correr_episodios_gym():
                 display_arr(screen, rgb_array, True, (480,630))
             pygame.display.flip()
             clock.tick(velocity)
-        pygame.quit()
         ###################################################
 
         if aux_reward > 250:
@@ -56,6 +56,7 @@ def correr_episodios_gym():
             print("este juego paso: ", i_episode)
             print("rear: ", aux_reward)
         aux_reward = 0
+    pygame.quit()
 
 
 correr_episodios_gym()
@@ -155,7 +156,7 @@ a_2 = sigma(z_2)
 diff = 0.5 * (tf.subtract(a_2, y))**2
 ###########################
 cost = tf.multiply(diff, diff)
-step = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
+optimizer = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
 ###########################
 
 prod = tf.argmax(a_2, 1)
@@ -165,17 +166,14 @@ sess.run(tf.global_variables_initializer())
 
 
 epoca_i = 0
+
+
 while len(aux_obs_copy_pila) != 0:
     lotex, lotey = get_lote(1)  # mejor
     if len(list(lotex)) != 0:
         lotex = np.divide(lotex, 255.0)
         lotey = np.divide(lotey, 255.0)
-        #print "##########################xx########X#######################"
-        #print lotex
-        #print "############################YYY#############################"
-        #print lotey
-        #print "#########################################################"
-        sess.run(step, feed_dict={
+        sess.run(optimizer, feed_dict={
                     a_0: lotex, y: lotey})
     epoca_i+=1
 
@@ -187,7 +185,7 @@ def play():
         reward = 0
         done = False
         list_aux_ac = []
-
+        
         while not done:
             env.render()
             observation = np.divide(observation, 255.0)
