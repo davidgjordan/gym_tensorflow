@@ -46,8 +46,8 @@ def correr_episodios_gym():
             aux_action.append(action)
             aux_obs.append(observation)
             #############################################
-            if observation is not None:################
-                display_arr(screen, rgb_array, True, (480,630))
+            #if observation is not None:################
+                #display_arr(screen, rgb_array, True, (480,630))
             pygame.display.flip()
             clock.tick(velocity)
         ###################################################
@@ -141,7 +141,7 @@ print("inputy: ",_sizeNumberKeysY)
 a_0 = tf.placeholder(tf.float32, [None, _sizeInputX])
 y = tf.placeholder(tf.float32, [None, _sizeNumberKeysY])
 
-middle = 128
+middle = 30
 w_1 = tf.Variable(tf.truncated_normal([_sizeInputX, middle]))
 b_1 = tf.Variable(tf.truncated_normal([1, middle]))
 w_2 = tf.Variable(tf.truncated_normal([middle, _sizeNumberKeysY]))
@@ -218,7 +218,7 @@ def play():
     
 play()
 saver = tf.train.Saver()
-save_path = saver.save(sess, "./tmp_cuatro_f/model.ckpt")
+save_path = saver.save(sess, "./tmp_seis_f/model.ckpt")
 print("Model saved in path: %s" % save_path)
 
 # for i in xrange(10000):

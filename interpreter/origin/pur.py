@@ -24,7 +24,7 @@ def display_arr(screen, arr, transpose, video_size):
 def correr_episodios_gym():
     global list_obs_por_juego
     global list_action_esperadas_por_juego
-    for i_episode in range(50):
+    for i_episode in range(100):
         observation = env.reset()
         aux_reward = 0
         reward = 0
@@ -45,13 +45,13 @@ def correr_episodios_gym():
             aux_action.append(action)
             aux_obs.append(observation)
             #############################################
-            if observation is not None:################
-                display_arr(screen, rgb_array, True, (480,630))
+            # if observation is not None:################
+            #     display_arr(screen, rgb_array, True, (480,630))
             pygame.display.flip()
             clock.tick(velocity)
         ###################################################
 
-        if aux_reward > 300:
+        if aux_reward > 350:
             list_obs_por_juego = np.vstack(aux_obs)
             list_action_esperadas_por_juego = np.vstack(aux_action)
             print("este juego paso: ", i_episode)
@@ -60,7 +60,7 @@ def correr_episodios_gym():
     pygame.quit()
 
 
-#correr_episodios_gym()
+correr_episodios_gym()
 #print(list_obs_por_juego)
 #print(list_action_esperadas_por_juego)
 
@@ -168,7 +168,7 @@ def train(numberCiclos, numGames,  sizeInputX,  sizeNumberKeysY, observations, a
     for i in range(int(numberCiclos)):  
         print("cicle: ", i)
         while len(pilaO) != 0:
-            lotex, lotey = getBatch(10)  # mejor
+            lotex, lotey = getBatch(100)  # mejor
             if len(list(lotex)) != 0:
                 sess.run(optimizer, feed_dict={
                             a_0: lotex, y: lotey})
@@ -183,10 +183,10 @@ def train(numberCiclos, numGames,  sizeInputX,  sizeNumberKeysY, observations, a
                 auxObservation = np.divide(observation, 255.0)    #aumente            
                 action = sess.run(prod, feed_dict={
                                         a_0: auxObservation.reshape(1, sizeInputX)})
-                #print action
+                print action
                 observation, reward, done, info = env.step(action)
-                fullReward += reward
                 listAuxObs.append(observation)
+                fullReward += reward
                 listAuxAct.append(action)
             if fullReward > expectedReward:
                 _, auxObs = getNormalizeObservationsFilter(  # normalize OBS for each game
@@ -209,7 +209,7 @@ def train(numberCiclos, numGames,  sizeInputX,  sizeNumberKeysY, observations, a
 
 #list_obs_por_juego, list_action_esperadas_por_juego = [], []
 #numberCiclos, numGames,  sizeInputX,  sizeNumberKeysY, observations, actions, vecIndexFilter, nameGame, expectedReward, path    
-#train(3,5,128,9,list_obs_por_juego, list_action_esperadas_por_juego ,[],"MsPacman-ram-v0",250,"./save/uno/model.kpt")
+train(3,5,128,9,list_obs_por_juego, list_action_esperadas_por_juego ,[],"MsPacman-ram-v0",250,"./save/dos/model.kpt")
 
 def display_arr(screen, arr, transpose, video_size):
     arr_min, arr_max = arr.min(), arr.max()
@@ -245,7 +245,7 @@ def play(sizeInputX,sizeNumberKeysY ,nameGame ,vecIndexFilter, path):
 
     with tf.Session() as sess:
         saver.restore(sess, path)
-        for i_episode in range(1):
+        for i_episode in range(2):
             observation = env.reset()
             aux_reward = 0
             reward = 0
@@ -282,4 +282,4 @@ def play(sizeInputX,sizeNumberKeysY ,nameGame ,vecIndexFilter, path):
 
 #./save/uno/model.kpt
 #sizeInputX,sizeNumberKeysY ,nameGame ,vecIndexFilter, path
-play(128,9,"MsPacman-ram-v0",[],"./save/uno/model.kpt")
+#play(128,9,"MsPacman-ram-v0",[],"./save/dos/model.kpt")
