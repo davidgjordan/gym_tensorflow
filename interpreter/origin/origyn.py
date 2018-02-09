@@ -23,14 +23,16 @@ def display_arr(screen, arr, transpose, video_size):
     screen.blit(pyg_img, (0,0))
 
 def correr_episodios_gym():
-    for i_episode in range(1):
+    global list_obs_por_juego 
+    global list_action_esperadas_por_juego
+    for i_episode in range(50):
         observation = env.reset()
         aux_reward = 0
         reward = 0
         done = False
         aux_action, aux_obs = [], []
         ########################################
-        velocity = 5000
+        velocity = 15000
         clock = pygame.time.Clock()
         screen = pygame.display.set_mode((480,630))
         pygame.display.set_caption(u'DEVINT-24 GAMES - NNAgent')
@@ -50,7 +52,7 @@ def correr_episodios_gym():
             clock.tick(velocity)
         ###################################################
 
-        if aux_reward > 250:
+        if aux_reward > 300:
             list_obs_por_juego.append(aux_obs)
             list_action_esperadas_por_juego.append(aux_action)
             print("este juego paso: ", i_episode)
@@ -179,31 +181,44 @@ while len(aux_obs_copy_pila) != 0:
 
 
 def play():
-    for i_episode in range(10):
+    for i_episode in range(5):
         observation = env.reset()
         aux_reward = 0
         reward = 0
         done = False
         list_aux_ac = []
-        
+        ########################################
+        velocity = 50
+        clock = pygame.time.Clock()
+        screen = pygame.display.set_mode((480,630))
+        pygame.display.set_caption(u'DEVINT-24 GAMES - NNAgent')
+        #########################################
         while not done:
-            env.render()
+            #env.render()
             observation = np.divide(observation, 255.0)
             
             action = sess.run(prod, feed_dict={
                                     a_0: observation.reshape(1, 128)})
-            print("action elegida: ", action)
+            #print("action elegida: ", action)
             
-            observation, reward, done, info = env.step(action)
+            observation, reward, done, rgb_array = env.step(action)
             aux_reward += reward
             list_aux_ac.append(action[0])
+            #############################################
+            if observation is not None:################
+                display_arr(screen, rgb_array, True, (480,630))
+            pygame.display.flip()
+            clock.tick(velocity)
+        ###################################################
         if aux_reward > 300:
             print("este juego paso o:: ", i_episode)
             print("reward:: ", aux_reward)
         aux_reward = 0
+    pygame.quit()
+    
 play()
 saver = tf.train.Saver()
-save_path = saver.save(sess, "./tmp_seis_f/model.ckpt")
+save_path = saver.save(sess, "./tmp_cuatro_f/model.ckpt")
 print("Model saved in path: %s" % save_path)
 
 # for i in xrange(10000):

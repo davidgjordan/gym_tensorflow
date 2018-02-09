@@ -24,14 +24,14 @@ def display_arr(screen, arr, transpose, video_size):
 def correr_episodios_gym():
     global list_obs_por_juego
     global list_action_esperadas_por_juego
-    for i_episode in range(5):
+    for i_episode in range(50):
         observation = env.reset()
         aux_reward = 0
         reward = 0
         done = False
         aux_action, aux_obs = [], []
         ########################################
-        velocity = 5000
+        velocity = 15000
         clock = pygame.time.Clock()
         screen = pygame.display.set_mode((480,630))
         pygame.display.set_caption(u'DEVINT-24 GAMES - NNAgent')
@@ -51,7 +51,7 @@ def correr_episodios_gym():
             clock.tick(velocity)
         ###################################################
 
-        if aux_reward > 250:
+        if aux_reward > 300:
             list_obs_por_juego = np.vstack(aux_obs)
             list_action_esperadas_por_juego = np.vstack(aux_action)
             print("este juego paso: ", i_episode)
@@ -61,8 +61,8 @@ def correr_episodios_gym():
 
 
 #correr_episodios_gym()
-print(list_obs_por_juego)
-print(list_action_esperadas_por_juego)
+#print(list_obs_por_juego)
+#print(list_action_esperadas_por_juego)
 
 # #  #  # # # # # # # # # FIN  GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -166,9 +166,9 @@ def train(numberCiclos, numGames,  sizeInputX,  sizeNumberKeysY, observations, a
     pilaO.extend(matchesObs)
     pilaA.extend(matchesAct)
     for i in range(int(numberCiclos)):  
-        
+        print("cicle: ", i)
         while len(pilaO) != 0:
-            lotex, lotey = getBatch(1)  # mejor
+            lotex, lotey = getBatch(10)  # mejor
             if len(list(lotex)) != 0:
                 sess.run(optimizer, feed_dict={
                             a_0: lotex, y: lotey})
@@ -183,7 +183,7 @@ def train(numberCiclos, numGames,  sizeInputX,  sizeNumberKeysY, observations, a
                 auxObservation = np.divide(observation, 255.0)    #aumente            
                 action = sess.run(prod, feed_dict={
                                         a_0: auxObservation.reshape(1, sizeInputX)})
-                print action
+                #print action
                 observation, reward, done, info = env.step(action)
                 fullReward += reward
                 listAuxObs.append(observation)
@@ -195,6 +195,7 @@ def train(numberCiclos, numGames,  sizeInputX,  sizeNumberKeysY, observations, a
                 _, auxAct = getNormalizeActionsDefault(
                     listAuxAct, sizeNumberKeysY)  # normalize actions for each game
                 matchesAct.extend(auxAct)
+                expectedReward+=50###############
         if len(matchesObs) == 0:
             matchesObs.extend(auxObsCopyPila)
             matchesAct.extend(auxActCopyPila)
@@ -251,7 +252,7 @@ def play(sizeInputX,sizeNumberKeysY ,nameGame ,vecIndexFilter, path):
             done = False
             list_aux_ac = []
             #######################################3
-            velocity = 500
+            velocity = 50
             clock = pygame.time.Clock()
             screen = pygame.display.set_mode((480,630))
             pygame.display.set_caption(u'DEVINT-24 GAMES - NNAgent')
