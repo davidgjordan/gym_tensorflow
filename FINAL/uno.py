@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import gym
+import pygame
 
 
 # #  #  # # # # # # # # # GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -9,10 +10,11 @@ list_obs_por_juego, list_action_esperadas_por_juego = [], []
 
 env = gym.make('MsPacman-ram-v0')
 tam_teclas_disponibles = env.action_space.n  # el pacman es  9
+
 print tam_teclas_disponibles
 
 def correr_episodios_gym():
-    for i_episode in range(50):
+    for i_episode in range(15):
         observation = env.reset()
         aux_reward = 0
         reward = 0
@@ -27,7 +29,7 @@ def correr_episodios_gym():
             aux_action.append(action)
             aux_obs.append(observation)
 
-        if aux_reward > 250.0:
+        if aux_reward > 200.0:
             list_obs_por_juego.append(aux_obs)
             list_action_esperadas_por_juego.append(aux_action)
             print("este juego paso: ", i_episode)
@@ -84,6 +86,7 @@ def get_lote(tam_lote):
         if  aux_obs_copy_pila:
             data_o = aux_obs_copy_pila.pop()
             data_a = aux_act_copy_pila.pop()
+
             lis_aux_obs.append(data_o)
             lis_aux_act.append(data_a)
         else:
@@ -174,9 +177,9 @@ with tf.Session() as sess:
         lotex, lotey = get_lote(3)
         
         opt = sess.run(optimizador, feed_dict={x_input_observations: lotex, yR_salidas_aciones_esperadas: lotey})
-        print("OPT: ", opt)
-        print("XXXXXXXXXXXXX: ", lotex)
-        print("YYYYYYYYYYYYY: ", lotey)
+        #print("OPT: ", opt)
+        #print("LOTE x: ", lotex)
+        #print("LOTE y: ", lotey)
         if (epoca_i%50==0):
             avance(epoca_i, sess, lotex, lotey)
 
@@ -189,7 +192,7 @@ with tf.Session() as sess:
 
 
 ## # # #  # ## # # # # # # # PROBANDO LA PREDCICION DE LA RED NEURONAL # # # # ##
-    for i_episode in range(15):
+    for i_episode in range(10):
         observation = env.reset()
         aux_reward = 0
         reward = 0
@@ -203,13 +206,13 @@ with tf.Session() as sess:
             observation, reward, done, info = env.step(action)
             aux_reward += reward
             list_aux_ac.append(action[0])
-        if aux_reward > 250.0:
+        if aux_reward > 200.0:
             print("este juego paso o:: ", i_episode)
         aux_reward = 0
         #print("action elegida list: ", list_aux_ac)
             
     ######SALVAR
-    save_path = saver.save(sess, "./tmp_dos/model.ckpt")
+    save_path = saver.save(sess, "./tmp_uno/model.ckpt")
     print("Model saved in file: %s" % save_path)
 
     # aver.restore(sess, "/tmp/model.ckpt")
@@ -217,4 +220,127 @@ with tf.Session() as sess:
 
 
 ## # # #  # ## # # # # # # # PROBANDO LA PREDCICION DE LA RED NEURONAL # # # # ##
+
+# Script::Train(observation , Actions, numero_games, numero_ciclos, rewards_esperado){
+#     configurarNN(observation , Actions);# configurar red con los nuevos tamanos
+#     NNentrenada = train(observation , Actions);# entrenar red
+
+#     for i < numero_ciclos i++{ #numero de juegos de los cuales  se guardaran partidas de los q aprueben el rewar
+
+#         for i < numero_games i++{ #
+#             NNActions = NNentrenada.solve(OpenAI.getObs());
+#             OpenAI.setActions(NNActions); #entorno.step(NNActions)
+#         }
+#         rewarCAlculate();
+#     }
+
+#     Nmatches([obs, action],[obs, action]);
+# }
+# NNotra = retrain(NNmatches)                                                                                    
+
+
+
+
+#############################################################################################
+
+
+## # # #  # ## # # # # # # # PROBANDO LA PREDCICION DE LA RED NEURONAL # # # # ##
+
+# ConfigTrain configTrain;
+# path_redentrenada propiedad de clase;
+# metodo privafdo  
+
+# Game{
+#   name_game#nombre del juego
+#   observation  # todas las observaciones filtradas vector<vector<double>>
+#   Actions   # vector
+#   rewards_total # double
+#   cantida steps # int tamano de las filas de las obs
+#   number_keys_available # int tamano de las teclas avilitadas por el entorno
+# }
+
+# ConfigTrain{
+#     vector_indices # vector indices a seleccionar para el filtrado
+#     numero_ciclos,# int cantidad de ciclos del entrenamiento
+#     numero_games, # int canrtidad de juegos por ciclo de los cuales se filtrara las nuevas obs
+#     rewards_esperado # double minimo reward para selecciuonar ese juego 
+# }
+
+# Train(Obser , ConfigTrain , vector_indices ){
+
+# }
+
+# Script::Train(Game game, ConfigTrain configTrain){
+    
+    
+#     configNetwork( game , configTrain);# configurar red con los nuevos tamanos
+    
+#     string path_redentrenada = train(game);# entrenar red
+
+#     int nnactions = 0;
+#     OpenAI env;
+#     vector <Observations> list_obs_por_juego;
+#     reward_total = 0;
+
+#     for i=0 ; i < numero_ciclos ;  i++{ #numero de juegos de los cuales  se guardaran partidas de los q aprueben el rewar
+        
+#         Observations obs_por_juego_aux;
+
+#         for i=0 ;i < numero_games ; i++{ #
+#             # el python deveria devolverme un game completo
+#             nnactions = solve(env.getObs(), path_redentrenada);
+#             observations , reward = env.setActions(nnactions); #entorno.step(NNActions)
+#             reward_total+= reward;
+#             obs_por_juego_aux.observations.push(observations);#
+#         }
+        
+#         bool passed = rewarCalculate(reward_total ,rewards_esperado);
+#         if passed  list_obs_por_juego.push(obs_por_juego_aux);
+#         reward_total = 0;
+#         observations = list_obs_por_juego;
+#     }
+
+#     #NNotra = retrain(list_obs_por_juego)                                                                                    
+# }
+
+
+
+# bool rewarCalculate(rewards_actual, rewards_esperado){
+#     #calcula  si las obs pasan el rewards_esperado
+#     return rewards_actual > rewards_esperado ? true :false;
+# }
+
+# json json:
+
+# void configNetwork( game , configTrain){
+#     # crear un json para mandarle al script
+#     # json {
+#     #    method_1: train:
+#     #               parameters:[
+#     #                   ciclos: configtTrain.ciclos,
+#     #                   numgames:configtTrain.num_games
+#     #                   input_obs_a_0: observations[0].size() 
+#     #                   input_salida_y: configTrain.num_teclas
+#     #                   obser: game.observations
+#     #                   actions: game.actions
+#     #                   vector_indices: configTrain.vecIndices
+#     #                   nameGame:game.name
+#     #                   rewards_esperado: configTrain.rewards_esperado
+#     #                    path_salida_network: confiTrain.path
+#     #               ]
+#     # }
+# }
+
+# string train(Game game){
+
+#     string path_script  = crearFileScript();
+#     #metodo del padre
+#     _path_script = path_script;
+
+#     PythonScript::addParameter(json.dump());
+#     PythonBuilder::run();
+
+#     string path_red_entrenada = PythonScript::getResult();
+#     return path_red_entrenada;
+# }
 

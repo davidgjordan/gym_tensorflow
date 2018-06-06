@@ -16,6 +16,7 @@ env = gym.make('MsPacman-ram-v0')
 tam_teclas_disponibles = env.action_space.n  # el pacman es  9
 print tam_teclas_disponibles
 def display_arr(screen, arr, transpose, video_size):
+    print(arr)
     arr_min, arr_max = arr.min(), arr.max()
     arr = 255.0 * (arr - arr_min) / (arr_max - arr_min)
     pyg_img = pygame.surfarray.make_surface(arr.swapaxes(0, 1) if transpose else arr)
@@ -25,7 +26,7 @@ def display_arr(screen, arr, transpose, video_size):
 def correr_episodios_gym():
     global list_obs_por_juego 
     global list_action_esperadas_por_juego
-    for i_episode in range(50):
+    for i_episode in range(20):
         observation = env.reset()
         aux_reward = 0
         reward = 0

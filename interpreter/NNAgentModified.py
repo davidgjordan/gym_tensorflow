@@ -165,6 +165,7 @@ def play(sizeInputX,sizeNumberKeysY ,nameGame ,vecIndexFilter, path):
     optimizer = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
     ###########################################################
     prod = tf.argmax(a_2, 1)
+    #prod = tf.Variable(a_2, name="prod")
     sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()    
