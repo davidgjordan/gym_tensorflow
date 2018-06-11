@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import sys
-sys.path.insert(0,'/home/ubuntu/Desktop')
+sys.path.insert(0, '/home/ubuntu/Desktop')
 import gym
 import tensorflow as tf
 import numpy as np
 import pygame
-
+import random
 
 
 # #  #  # # # # # # # # # GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -15,18 +15,29 @@ list_obs_por_juego, list_action_esperadas_por_juego = [], []
 env = gym.make('MsPacman-ram-v0')
 tam_teclas_disponibles = env.action_space.n  # el pacman es  9
 print tam_teclas_disponibles
+
+
 def display_arr(screen, arr, transpose, video_size):
     arr_min, arr_max = arr.min(), arr.max()
     arr = 255.0 * (arr - arr_min) / (arr_max - arr_min)
-    pyg_img = pygame.surfarray.make_surface(arr.swapaxes(0, 1) if transpose else arr)
+    pyg_img = pygame.surfarray.make_surface(
+        arr.swapaxes(0, 1) if transpose else arr)
     pyg_img = pygame.transform.scale(pyg_img, video_size)
-    screen.blit(pyg_img, (0,0))
+    screen.blit(pyg_img, (0, 0))
+
+
+# # # # # # #RECOLECCION DE DATOS PARA EL ENTRENAMIENTO########################################
+espectedReward = 250
+successGamesCount = 3
+print 'RECOLECCION DE DATOS DE {0} JUEGOS CON RECOMPENSA MAYOR A {1} PARA EL ENTRENAMIENTO . . .'.format(successGamesCount, espectedReward)
+
 
 def correr_episodios_gym():
-    global list_obs_por_juego 
+    global list_obs_por_juego
     global list_action_esperadas_por_juego
-    i_episode = 0
-    while i_episode != 3:
+    successGame = 1
+    gameNumber = 1
+    while successGame <= successGamesCount:
         observation = env.reset()
         aux_reward = 0
         reward = 0
@@ -35,38 +46,46 @@ def correr_episodios_gym():
         ########################################
         velocity = 15000
         clock = pygame.time.Clock()
-        screen = pygame.display.set_mode((480,630))
-        pygame.display.set_caption(u'DEVINT-24 GAMES - NNAgent')
+        screen = pygame.display.set_mode((480, 630))  # 480, 630
+        pygame.display.set_caption(u'OBTENIENDO DATA DE ENTRENAMIENTO')
         #########################################
         while not done:
-            rgb_array = env.render(mode='rgb_array')#env.render()            
-            action = env.action_space.sample()
+            rgb_array = env.render(mode='rgb_array')  # env.render()
+            # action = env.action_space.sample()
+            action = random.choice([5, 6, 7, 8])
             observation, reward, done, info = env.step(action)
             aux_reward += reward
 
             aux_action.append(action)
             aux_obs.append(observation)
             #############################################
-            if observation is not None:################
-                display_arr(screen, rgb_array, True, (480,630))
+            if observation is not None:
+                display_arr(screen, rgb_array, True, (480, 630))
             pygame.display.flip()
             clock.tick(velocity)
         ###################################################
 
-        if aux_reward > 250:
-            i_episode = i_episode+ 1
+        if aux_reward > espectedReward:
+            print 'Juego Numero: {0} PASO - recompensa: {1} - juego: {2}/{3}'.format(gameNumber, aux_reward, successGame, gameNumber)
+            successGame = successGame + 1
+
             list_obs_por_juego.append(aux_obs)
             list_action_esperadas_por_juego.append(aux_action)
-            print("este juego paso: ", i_episode)
-            print("rear: ", aux_reward)
+        else:
+            print 'Juego Numero: {0} NO PASO'.format(gameNumber)
+        gameNumber = gameNumber + 1
         aux_reward = 0
     pygame.quit()
 
 
-correr_episodios_gym()
+correr_episodios_gym()  # DATA
 
+
+##################NORMALIZE DATA################################
 mat_normalize_obs = None
 mat_normalize_actions = None
+
+print 'NORMALIZANDO LOS DATOS DE {0} JUEGOS PARA EL ENTRENAMIENTO . . .'.format(successGamesCount)
 
 
 def get_normalizar_actions():
@@ -122,24 +141,12 @@ def get_lote(tam_lote):
 
 
 
-# mat_obs, mat_ac = get_lote(5)
-
-# print("Actions: ")
-# print(mat_ac)
-# print("Observations: ")
-# print(mat_obs)
-# #  #  # # # # # # # # # FIN GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
+########### NEURONAL NETWORK###########
+print 'CREANDO Y CONFIGURANDO LA RED NEURONAL . . .'
 
 _sizeInputX = 128
 _sizeNumberKeysY = 9
-def train():
-    global _sizeInputX
-    _sizeInputX = 128
-    global _sizeNumberKeysY
-    _sizeNumberKeysY = 9
-train()
-print("inputx: ",_sizeInputX)
-print("inputy: ",_sizeNumberKeysY)
+
 a_0 = tf.placeholder(tf.float32, [None, _sizeInputX])
 y = tf.placeholder(tf.float32, [None, _sizeNumberKeysY])
 
@@ -149,9 +156,12 @@ b_1 = tf.Variable(tf.truncated_normal([1, middle]))
 w_2 = tf.Variable(tf.truncated_normal([middle, _sizeNumberKeysY]))
 b_2 = tf.Variable(tf.truncated_normal([1, _sizeNumberKeysY]))
 
+
 def sigma(x):
     return tf.div(tf.constant(1.0),
                   tf.add(tf.constant(1.0), tf.exp(tf.negative(x))))
+
+
 z_1 = tf.add(tf.matmul(a_0, w_1), b_1)
 a_1 = sigma(z_1)
 z_2 = tf.add(tf.matmul(a_1, w_2), b_2)
@@ -169,21 +179,32 @@ sess = tf.InteractiveSession()
 sess.run(tf.global_variables_initializer())
 
 
+#####RUNING  TRAINING#############
 epoca_i = 0
-
-
 while len(aux_obs_copy_pila) != 0:
     lotex, lotey = get_lote(1)  # mejor
+    # print "**************************************************************"
+    # print lotey
+    # print "**************************************************************"
+
     if len(list(lotex)) != 0:
         lotex = np.divide(lotex, 255.0)
         lotey = np.divide(lotey, 255.0)
         sess.run(optimizer, feed_dict={
-                    a_0: lotex, y: lotey})
-    epoca_i+=1
+            a_0: lotex, y: lotey})
+    epoca_i += 1
+
+########PLAY GAME AFTER TRAIN##################
+
+testGames = 3
+
+print 'PROBANDO LA RED ENTRENADA EN {0} JUEGOS . . .'.format(testGames)
 
 
 def play():
-    for i_episode in range(5):
+    gameNumber = 1
+    successGame = 1
+    for i_episode in range(testGames):
         observation = env.reset()
         aux_reward = 0
         reward = 0
@@ -192,72 +213,40 @@ def play():
         ########################################
         velocity = 50
         clock = pygame.time.Clock()
-        screen = pygame.display.set_mode((480,630))
-        pygame.display.set_caption(u'DEVINT-24 GAMES - NNAgent')
+        screen = pygame.display.set_mode((480, 630))
+        pygame.display.set_caption(
+            u'JUEGOS DE PRUEBA DESPUES DEL ENTRENAMIENTO')
         #########################################
         while not done:
-            #env.render()
+            # env.render()
             rgb_array = env.render(mode='rgb_array')
             observation = np.divide(observation, 255.0)
-            
+
             action = sess.run(prod, feed_dict={
-                                    a_0: observation.reshape(1, 128)})
-            #print("action elegida: ", action)
-            
+                a_0: observation.reshape(1, 128)})
+            # print 'action elegida: {0}'.format(action)
+
             observation, reward, done, info = env.step(action)
             aux_reward += reward
             list_aux_ac.append(action[0])
             #############################################
-            if observation is not None:################
-                display_arr(screen, rgb_array, True, (480,630))
+            if observation is not None:
+                display_arr(screen, rgb_array, True, (480, 630))
             pygame.display.flip()
             clock.tick(velocity)
         ###################################################
-        if aux_reward > 300:
-            print("este juego paso o:: ", i_episode)
-            print("reward:: ", aux_reward)
+        if aux_reward > espectedReward:
+            print 'Juego Numero: {0} PASO - recompensa: {1} - juego: {2}/{3}'.format(gameNumber, aux_reward, successGame, gameNumber)
+            successGame = successGame + 1
+        else:
+            print 'Juego Numero: {0} NO PASO'.format(gameNumber)
+        gameNumber = gameNumber + 1
         aux_reward = 0
     pygame.quit()
-    
+
+
 play()
 saver = tf.train.Saver()
-save_path = saver.save(sess, "./tmp_seis_f/model.ckpt")
+# el ocho dio bien no mas
+save_path = saver.save(sess, "./tmp_nueve_f/model.ckpt")
 print("Model saved in path: %s" % save_path)
-
-# for i in xrange(10000):
-#     batch_xs, batch_ys = mnist.train.next_batch(3)
-#     sess.run(step, feed_dict={a_0: batch_xs,
-#                               y: batch_ys})
-#     print "##########################xx########X#######################"
-#     print batch_xs
-#     print "############################YYY#############################"
-#     print batch_ys
-#     print "#########################################################"
-
-#     if i % 1000 == 0:
-#         res = sess.run(acct_res, feed_dict={a_0: mnist.test.images[:1000],
-#                                            y: mnist.test.labels[:1000]})
-        # print mnist.test.labels[2]
-        # print(sess.run(prod, feed_dict={
-        #      a_0: mnist.test.images[2].reshape(1, 784)}))
-        # print res
-################################################
-
-# lis_action, list_obs = [], []
-
-
-# def correr_episodios_gym():
-#     for i_episode in range(2):
-#         observation = env.reset()
-#         aux_reward = 0
-#         reward = 0
-#         done = False
-#         aux_action, aux_obs = [], []
-#         while not done:
-#             env.render()
-#             action = env.action_space.sample()
-#             observation, reward, done, info = env.step(action)
-#             aux_reward += reward
-
-#             aux_action.append(action)
-#             aux_obs.append(observation)
