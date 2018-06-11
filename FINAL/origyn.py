@@ -25,7 +25,7 @@ def display_arr(screen, arr, transpose, video_size):
 def correr_episodios_gym():
     global list_obs_por_juego 
     global list_action_esperadas_por_juego
-    for i_episode in range(50):
+    for i_episode in range(15):
         observation = env.reset()
         aux_reward = 0
         reward = 0
@@ -38,16 +38,16 @@ def correr_episodios_gym():
         pygame.display.set_caption(u'DEVINT-24 GAMES - NNAgent')
         #########################################
         while not done:
-            #env.render()
+            rgb_array = env.render(mode='rgb_array')#env.render()            
             action = env.action_space.sample()
-            observation, reward, done, rgb_array = env.step(action)
+            observation, reward, done, info = env.step(action)
             aux_reward += reward
 
             aux_action.append(action)
             aux_obs.append(observation)
             #############################################
-            #if observation is not None:################
-                #display_arr(screen, rgb_array, True, (480,630))
+            if observation is not None:################
+                display_arr(screen, rgb_array, True, (480,630))
             pygame.display.flip()
             clock.tick(velocity)
         ###################################################
@@ -195,13 +195,14 @@ def play():
         #########################################
         while not done:
             #env.render()
+            rgb_array = env.render(mode='rgb_array')
             observation = np.divide(observation, 255.0)
             
             action = sess.run(prod, feed_dict={
                                     a_0: observation.reshape(1, 128)})
             #print("action elegida: ", action)
             
-            observation, reward, done, rgb_array = env.step(action)
+            observation, reward, done, info = env.step(action)
             aux_reward += reward
             list_aux_ac.append(action[0])
             #############################################
