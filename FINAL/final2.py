@@ -7,6 +7,19 @@ import numpy as np
 import pygame
 import random
 
+### # # # # COLORS  # # # # # # ## # #
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 
 # #  #  # # # # # # # # # GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -29,7 +42,7 @@ def display_arr(screen, arr, transpose, video_size):
 # # # # # # #RECOLECCION DE DATOS PARA EL ENTRENAMIENTO########################################
 espectedReward = 250
 successGamesCount = 3
-print 'RECOLECCION DE DATOS DE {0} JUEGOS CON RECOMPENSA MAYOR A {1} PARA EL ENTRENAMIENTO . . .'.format(successGamesCount, espectedReward)
+print bcolors.OKBLUE + bcolors.BOLD + 'RECOLECCION DE DATOS DE {0} JUEGOS CON RECOMPENSA MAYOR A {1} PARA EL ENTRENAMIENTO . . .\033[0m'.format(successGamesCount, espectedReward)
 
 
 def correr_episodios_gym():
@@ -66,13 +79,13 @@ def correr_episodios_gym():
         ###################################################
 
         if aux_reward > espectedReward:
-            print 'Juego Numero: {0} PASO - recompensa: {1} - juego: {2}/{3}'.format(gameNumber, aux_reward, successGame, gameNumber)
+            print bcolors.OKGREEN + 'Juego Numero: {0} PASO - recompensa: {1} - juego: {2}/{3} \033[0m'.format(gameNumber, aux_reward, successGame, gameNumber)
             successGame = successGame + 1
 
             list_obs_por_juego.append(aux_obs)
             list_action_esperadas_por_juego.append(aux_action)
         else:
-            print 'Juego Numero: {0} NO PASO'.format(gameNumber)
+            print bcolors.WARNING + 'Juego Numero: {0} NO PASO\033[0m'.format(gameNumber)
         gameNumber = gameNumber + 1
         aux_reward = 0
     pygame.quit()
@@ -85,7 +98,7 @@ correr_episodios_gym()  # DATA
 mat_normalize_obs = None
 mat_normalize_actions = None
 
-print 'NORMALIZANDO LOS DATOS DE {0} JUEGOS PARA EL ENTRENAMIENTO . . .'.format(successGamesCount)
+print bcolors.OKBLUE + bcolors.BOLD + 'NORMALIZANDO LOS DATOS DE {0} JUEGOS PARA EL ENTRENAMIENTO . . .\033[0m'.format(successGamesCount)
 
 
 def get_normalizar_actions():
@@ -140,9 +153,8 @@ def get_lote(tam_lote):
     return mat_normalize_obs, mat_normalize_actions
 
 
-
 ########### NEURONAL NETWORK###########
-print 'CREANDO Y CONFIGURANDO LA RED NEURONAL . . .'
+print bcolors.OKBLUE + bcolors.BOLD + 'CREANDO Y CONFIGURANDO LA RED NEURONAL . . .\033[0m'
 
 _sizeInputX = 128
 _sizeNumberKeysY = 9
@@ -196,9 +208,9 @@ while len(aux_obs_copy_pila) != 0:
 
 ########PLAY GAME AFTER TRAIN##################
 
-testGames = 3
+testGames = 5
 
-print 'PROBANDO LA RED ENTRENADA EN {0} JUEGOS . . .'.format(testGames)
+print bcolors.OKBLUE + bcolors.BOLD + 'PROBANDO LA RED ENTRENADA EN {0} JUEGOS . . .\033[0m'.format(testGames)
 
 
 def play():
@@ -236,10 +248,10 @@ def play():
             clock.tick(velocity)
         ###################################################
         if aux_reward > espectedReward:
-            print 'Juego Numero: {0} PASO - recompensa: {1} - juego: {2}/{3}'.format(gameNumber, aux_reward, successGame, gameNumber)
+            print bcolors.OKGREEN + bcolors.BOLD + 'Juego Numero: {0} PASO - recompensa: {1} - juego: {2}/{3}\033[0m'.format(gameNumber, aux_reward, successGame, gameNumber)
             successGame = successGame + 1
         else:
-            print 'Juego Numero: {0} NO PASO'.format(gameNumber)
+            print bcolors.WARNING + 'Juego Numero: {0} NO PASO\033[0m'.format(gameNumber)
         gameNumber = gameNumber + 1
         aux_reward = 0
     pygame.quit()
@@ -249,4 +261,4 @@ play()
 saver = tf.train.Saver()
 # el ocho dio bien no mas
 save_path = saver.save(sess, "./tmp_nueve_f/model.ckpt")
-print("Model saved in path: %s" % save_path)
+print bcolors.HEADER + 'Model saved in path: {0}\033[0m'.format(save_path)
