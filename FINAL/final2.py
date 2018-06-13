@@ -6,6 +6,11 @@ import tensorflow as tf
 import numpy as np
 import pygame
 import random
+from time import sleep
+
+import os
+# raw_input('Gracias') # esta linea permite que el programa no termine hasta que se de Enter
+os.system('clear')
 
 ### # # # # COLORS  # # # # # # ## # #
 
@@ -19,15 +24,18 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+    Cyan = '\033[96m'
+    White = '\033[97m'
+    Magenta = '\033[95m'
 
 
 # #  #  # # # # # # # # # GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 list_obs_por_juego, list_action_esperadas_por_juego = [], []
-
-env = gym.make('MsPacman-ram-v0')
+gameName = 'MsPacman-ram-v0'
+env = gym.make(gameName)
 tam_teclas_disponibles = env.action_space.n  # el pacman es  9
-print tam_teclas_disponibles
+print bcolors.Cyan + bcolors.BOLD + gameName + '\033[0m'
 
 
 def display_arr(screen, arr, transpose, video_size):
@@ -40,9 +48,10 @@ def display_arr(screen, arr, transpose, video_size):
 
 
 # # # # # # #RECOLECCION DE DATOS PARA EL ENTRENAMIENTO########################################
-espectedReward = 250
-successGamesCount = 3
-print bcolors.OKBLUE + bcolors.BOLD + 'RECOLECCION DE DATOS DE {0} JUEGOS CON RECOMPENSA MAYOR A {1} PARA EL ENTRENAMIENTO . . .\033[0m'.format(successGamesCount, espectedReward)
+espectedReward = 150
+successGamesCount = 2
+sleep(1)
+print bcolors.Cyan + bcolors.BOLD + 'RECOLECCION DE DATOS DE {0} JUEGOS CON RECOMPENSA MAYOR A {1} PARA EL ENTRENAMIENTO . . .\033[0m'.format(successGamesCount, espectedReward)
 
 
 def correr_episodios_gym():
@@ -65,7 +74,7 @@ def correr_episodios_gym():
         while not done:
             rgb_array = env.render(mode='rgb_array')  # env.render()
             # action = env.action_space.sample()
-            action = random.choice([5, 6, 7, 8])
+            action = random.choice([1, 2, 3, 4, 5, 6, 7, 8])
             observation, reward, done, info = env.step(action)
             aux_reward += reward
 
@@ -91,14 +100,15 @@ def correr_episodios_gym():
     pygame.quit()
 
 
+sleep(1)
 correr_episodios_gym()  # DATA
 
 
 ##################NORMALIZE DATA################################
 mat_normalize_obs = None
 mat_normalize_actions = None
-
-print bcolors.OKBLUE + bcolors.BOLD + 'NORMALIZANDO LOS DATOS DE {0} JUEGOS PARA EL ENTRENAMIENTO . . .\033[0m'.format(successGamesCount)
+sleep(1)
+print bcolors.Cyan + bcolors.BOLD + 'NORMALIZANDO LOS DATOS DE {0} JUEGOS PARA EL ENTRENAMIENTO . . .\033[0m'.format(successGamesCount)
 
 
 def get_normalizar_actions():
@@ -129,8 +139,12 @@ get_normalizar_observations()
 
 tam_mat_act, _ = get_normalizar_actions()
 tam_mat_obs, _ = get_normalizar_observations()
-print len(tam_mat_act)
-print len(tam_mat_obs)
+sleep(1)
+print '...'  # len(tam_mat_act)
+sleep(1)
+print '...'  # len(tam_mat_obs)
+sleep(1)
+print '...'  # len(tam_mat_obs)
 
 
 _, aux_obs_copy_pila = get_normalizar_observations()
@@ -154,7 +168,8 @@ def get_lote(tam_lote):
 
 
 ########### NEURONAL NETWORK###########
-print bcolors.OKBLUE + bcolors.BOLD + 'CREANDO Y CONFIGURANDO LA RED NEURONAL . . .\033[0m'
+sleep(1)
+print bcolors.Cyan + bcolors.BOLD + 'CREANDO Y CONFIGURANDO LA RED NEURONAL . . .\033[0m'
 
 _sizeInputX = 128
 _sizeNumberKeysY = 9
@@ -192,6 +207,10 @@ sess.run(tf.global_variables_initializer())
 
 
 #####RUNING  TRAINING#############
+for i_episode in range(successGamesCount + 1):
+    sleep(1.5)
+    print bcolors.HEADER + bcolors.BOLD + 'Entrenando la red . . .\033[0m'
+
 epoca_i = 0
 while len(aux_obs_copy_pila) != 0:
     lotex, lotey = get_lote(1)  # mejor
@@ -205,12 +224,15 @@ while len(aux_obs_copy_pila) != 0:
         sess.run(optimizer, feed_dict={
             a_0: lotex, y: lotey})
     epoca_i += 1
+sleep(1)
+print bcolors.OKGREEN + bcolors.BOLD + 'Red entrenada!!!\033[0m'
 
 ########PLAY GAME AFTER TRAIN##################
 
 testGames = 5
 
-print bcolors.OKBLUE + bcolors.BOLD + 'PROBANDO LA RED ENTRENADA EN {0} JUEGOS . . .\033[0m'.format(testGames)
+sleep(1)
+print bcolors.Cyan + bcolors.BOLD + 'PROBANDO LA RED ENTRENADA EN {0} JUEGOS . . .\033[0m'.format(testGames)
 
 
 def play():
@@ -257,8 +279,10 @@ def play():
     pygame.quit()
 
 
+sleep(1)
 play()
 saver = tf.train.Saver()
 # el ocho dio bien no mas
-save_path = saver.save(sess, "./tmp_nueve_f/model.ckpt")
+save_path = saver.save(sess, "./tmp_doce_f/model.ckpt")
+sleep(1)
 print bcolors.HEADER + 'Model saved in path: {0}\033[0m'.format(save_path)
