@@ -10,7 +10,7 @@ from time import sleep
 
 import os
 # raw_input('Gracias') # esta linea permite que el programa no termine hasta que se de Enter
-os.system('clear')
+
 
 ### # # # # COLORS  # # # # # # ## # #
 
@@ -34,8 +34,27 @@ class bcolors:
 list_obs_por_juego, list_action_esperadas_por_juego = [], []
 gameName = 'MsPacman-ram-v0'
 env = gym.make(gameName)
+os.system('clear')
 tam_teclas_disponibles = env.action_space.n  # el pacman es  9
 print bcolors.Cyan + bcolors.BOLD + gameName + '\033[0m'
+
+
+def printPacman():
+    print bcolors.Magenta + bcolors.BOLD + ' _____   ______   _____   __   __   ______   __    _'
+    sleep(0.23)
+    print '|  _  | |  __  | |  ___| |  \_/  \ |  __  | |  \  | |'
+    sleep(0.23)
+    print '| |_| | | |__| | | |     | |\_/| | | |__| | | |\\\ | |'
+    sleep(0.23)
+    print '|  ___| |  __  | | |     | |   | | |  __  | | | \\\| |'
+    sleep(0.23)
+    print '| |     | |  | | | |___  | |   | | | |  | | | |  \  |'
+    sleep(0.23)
+    print '|_|     |_|  |_| |_____| |_|   |_| |_|  |_| |_|   \_|\033[0m'
+    print ''
+
+
+printPacman()
 
 
 def display_arr(screen, arr, transpose, video_size):
@@ -54,7 +73,7 @@ sleep(1)
 print bcolors.Cyan + bcolors.BOLD + 'RECOLECCION DE DATOS DE {0} JUEGOS CON RECOMPENSA MAYOR A {1} PARA EL ENTRENAMIENTO . . .\033[0m'.format(successGamesCount, espectedReward)
 
 
-def correr_episodios_gym():
+def recolectar_datos():
     global list_obs_por_juego
     global list_action_esperadas_por_juego
     successGame = 1
@@ -101,7 +120,7 @@ def correr_episodios_gym():
 
 
 sleep(1)
-correr_episodios_gym()  # DATA
+recolectar_datos()  # DATA
 
 
 ##################NORMALIZE DATA################################
@@ -235,7 +254,7 @@ sleep(1)
 print bcolors.Cyan + bcolors.BOLD + 'PROBANDO LA RED ENTRENADA EN {0} JUEGOS . . .\033[0m'.format(testGames)
 
 
-def play():
+def play_red_entrenada():
     gameNumber = 1
     successGame = 1
     for i_episode in range(testGames):
@@ -280,7 +299,7 @@ def play():
 
 
 sleep(1)
-play()
+play_red_entrenada()
 saver = tf.train.Saver()
 # el ocho dio bien no mas
 save_path = saver.save(sess, "./tmp_doce_f/model.ckpt")
