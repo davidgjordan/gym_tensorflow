@@ -264,7 +264,7 @@ def play_red_entrenada():
         done = False
         list_aux_ac = []
         ########################################
-        velocity = 50
+        velocity = 30
         clock = pygame.time.Clock()
         screen = pygame.display.set_mode((480, 630))
         pygame.display.set_caption(

@@ -27,7 +27,7 @@ def display_arr(screen, arr, transpose, video_size):
 
 
 print("RECOLECCION DE DATOS PARA EL ENTRENAMIENTO")
-espectedReward = 150
+espectedReward = 350
 successGamesCount = 3
 
 
@@ -100,8 +100,8 @@ list_obs_por_juego = np.divide(list_obs_por_juego, 255.0)
 
 
 ########### NEURONAL NETWORK###########
-a_0 = tf.placeholder(tf.float32, [None, 128])
-y = tf.placeholder(tf.float32, [None, 9])
+a_0 = tf.placeholder(tf.float32, [1, 128])
+y = tf.placeholder(tf.float32, [1, 9])
 
 middle = 30
 w_1 = tf.Variable(tf.truncated_normal([128, middle]))
@@ -148,6 +148,8 @@ while lote <= len(list_obs_por_juego):
 ########PLAY GAME AFTER TRAIN##################
 testGames = 3
 print("PROBANDO LA RED ENTRENADA")
+
+
 def play():
     gameNumber = 1
     successGame = 1
