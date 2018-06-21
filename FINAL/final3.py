@@ -7,6 +7,7 @@ import numpy as np
 import pygame
 import random
 from time import sleep
+import time
 
 import os
 # esta linea permite que el programa no termine hasta que se de Enter
@@ -30,7 +31,8 @@ class bcolors:
     Magenta = '\033[95m'
 
 
-# #  #  # # # # # # # # # GYM # # # # # # # # # # # # # # # # # # # # # # # # # #
+##################################################config GYM###############################################
+
 
 list_obs_por_juego, list_action_esperadas_por_juego = [], []
 gameName = 'MsPacman-ram-v0'
@@ -38,6 +40,7 @@ env = gym.make(gameName)
 os.system('clear')
 tam_teclas_disponibles = env.action_space.n  # el pacman es  9
 print bcolors.Cyan + bcolors.BOLD + gameName + '\033[0m'
+##################################################config GYM###############################################
 
 
 def printPacman():
@@ -57,6 +60,8 @@ def printPacman():
 
 printPacman()
 
+##################################################IMAGEN###############################################
+
 
 def display_arr(screen, arr, transpose, video_size):
     arr_min, arr_max = arr.min(), arr.max()
@@ -65,6 +70,8 @@ def display_arr(screen, arr, transpose, video_size):
         arr.swapaxes(0, 1) if transpose else arr)
     pyg_img = pygame.transform.scale(pyg_img, video_size)
     screen.blit(pyg_img, (0, 0))
+##################################################IMAGEN###############################################
+
 
 
 ######################################RECOLECCION DE DATOS PARA EL ENTRENAMIENTO########################################
@@ -287,6 +294,8 @@ def play_red_entrenada():
     rewardActual = 0
     teclaActual = 3
     secuenciaDeTeclasPresionadas = []
+    tiempoInicio = 0
+    tiempoFin = 0
     try:
         for i_episode in range(testGames):
             observation = env.reset()
@@ -301,6 +310,7 @@ def play_red_entrenada():
             pygame.display.set_caption(
                 u'JUEGOS DE PRUEBA DESPUES DEL ENTRENAMIENTO')
             #########################################
+            tiempoInicio = time.time()
             while not done:
                 # env.render()
                 rgb_array = env.render(mode='rgb_array')
@@ -341,12 +351,15 @@ def play_red_entrenada():
                     lives = info['ale.lives']
                     banderaVidas = True
 
+                tiempoFin = int(time.time() - tiempoInicio)
+
             lives = 3
             banderaNumeroJuegos = True
             secuenciaDeTeclasPresionadas = []
+            tiempoInicio = 0
             if aux_reward > espectedReward:
                 print bcolors.OKGREEN + bcolors.BOLD + 'Juego Numero: {0} PASO - recompensa total: {1} - juego: {2}/{3}\033[0m'.format(gameNumber, aux_reward, successGame, gameNumber)
-                print bcolors.WARNING + bcolors.BOLD + '-----------------------------------------------------------------------------\033[0m'
+                print bcolors.WARNING + bcolors.BOLD + '---------------------------------------------------------------------------\033[0m'
                 successGame = successGame + 1
             else:
                 print bcolors.WARNING + 'Juego Numero: {0} NO PASO\033[0m'.format(gameNumber)
@@ -354,12 +367,22 @@ def play_red_entrenada():
             aux_reward = 0
     except KeyboardInterrupt as e:
         print bcolors.FAIL + bcolors.BOLD + '\rRERROR EN EL PACMAN. . . PARAMETROS DEL ERROR\033[0m'
+        sleep(1)
         print ''
         print bcolors.FAIL + bcolors.BOLD + '\tNro de juego: {0}\033[0m'.format(gameNumber)
+        sleep(0.3)
         print bcolors.FAIL + bcolors.BOLD + '\tUltima tecla presionada: {0}\033[0m'.format(teclaActual)
-        print bcolors.FAIL + bcolors.BOLD + '\tRecompensa Obtenida: {0}\033[0m'.format(rewardActual)
+        sleep(0.3)
+        print bcolors.FAIL + bcolors.BOLD + '\tRecompensa total Obtenida: {0}\033[0m'.format(rewardActual)
+        sleep(0.3)
         print bcolors.FAIL + bcolors.BOLD + '\tCantidad de vidas restantes: {0}\033[0m'.format(lives)
+        sleep(0.3)
+        print bcolors.FAIL + bcolors.BOLD + '\tTiempo de duracion del juego: {0} segundos\033[0m'.format(tiempoFin)
+        sleep(0.3)
+        print bcolors.FAIL + bcolors.BOLD + '\tCantidad de teclas presionadas: {0}\033[0m'.format(len(secuenciaDeTeclasPresionadas))
+        sleep(0.3)
         print bcolors.FAIL + bcolors.BOLD + '\tSecuencia de teclas presionadas: \033[0m'
+        sleep(0.3)
         c = 0
         fin = '\t\t'
         for d in secuenciaDeTeclasPresionadas:
@@ -372,17 +395,25 @@ def play_red_entrenada():
                 c = 0
 
         print bcolors.FAIL + '{0}\033[0m'.format(fin)
-        print bcolors.FAIL + bcolors.BOLD + '\tCantidad de teclas presionadas: {0}\033[0m'.format(len(secuenciaDeTeclasPresionadas))
-
+        sleep(0.5)
         # manejar el error y decir en q numero de juego fue, en q vida cuando se presionaba q tecla cuando quedaban x vidas etc
+        # print bcolors.Cyan + bcolors.BOLD + 'Desea seguir probando la red?  si/no \033[0m'
+        continuar = ''
+        continuar = raw_input(bcolors.Cyan + bcolors.BOLD +
+                              'Desea seguir probando la red?  si/no \033[0m')
+        if continuar == 'si' or continuar == 'SI' or continuar == 'Si' or continuar == 'sI':
+            play_red_entrenada()
+        else:
+            pass
+
     finally:
         print ''
-        print bcolors.WARNING + bcolors.BOLD + 'FIN, BOT PACMAN!\033[0m'
     pygame.quit()
 
 
 sleep(1)
 play_red_entrenada()
+print bcolors.WARNING + bcolors.BOLD + 'FIN, BOT PACMAN!\033[0m'
 print ''
 #########################################################PLAY GAME AFTER TRAIN########################################################
 
