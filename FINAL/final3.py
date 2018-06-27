@@ -411,6 +411,7 @@ def play_red_entrenada():
                 c = 0
 
         print bcolors.FAIL + '{0}\033[0m'.format(fin)
+        print ''
         sleep(0.5)
         continuar = ''
         continuar = raw_input(bcolors.Cyan + bcolors.BOLD +
