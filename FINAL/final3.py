@@ -296,6 +296,7 @@ def play_red_entrenada():
     secuenciaDeTeclasPresionadas = []
     tiempoInicio = 0
     tiempoFin = 0
+    observationAux = []
     try:
         for i_episode in range(testGames):
             observation = env.reset()
@@ -323,6 +324,7 @@ def play_red_entrenada():
                 secuenciaDeTeclasPresionadas.append(teclaActual)
 
                 observation, reward, done, info = env.step(action)
+                observationAux = observation
                 aux_reward += reward
                 rewardActual = aux_reward
                 list_aux_ac.append(action[0])
@@ -379,6 +381,20 @@ def play_red_entrenada():
         sleep(0.3)
         print bcolors.FAIL + bcolors.BOLD + '\tTiempo de duracion del juego: {0} segundos\033[0m'.format(tiempoFin)
         sleep(0.3)
+        print bcolors.FAIL + bcolors.BOLD + '\tUltimo Patron de Observaciones del juego:\n\t\033[0m'
+        cp = 0
+        finp = '\t\t'
+        for d in observationAux:
+            ac = '{0}  '.format(d)
+            if cp <= 12:
+                finp = finp + ac
+                cp = cp + 1
+            else:
+                finp = '{0}\n\t\t'.format(finp)
+                cp = 0
+
+        print bcolors.FAIL + '{0}\033[0m'.format(finp)
+        sleep(0.3)
         print bcolors.FAIL + bcolors.BOLD + '\tCantidad de teclas presionadas: {0}\033[0m'.format(len(secuenciaDeTeclasPresionadas))
         sleep(0.3)
         print bcolors.FAIL + bcolors.BOLD + '\tSecuencia de teclas presionadas: \033[0m'
@@ -396,8 +412,6 @@ def play_red_entrenada():
 
         print bcolors.FAIL + '{0}\033[0m'.format(fin)
         sleep(0.5)
-        # manejar el error y decir en q numero de juego fue, en q vida cuando se presionaba q tecla cuando quedaban x vidas etc
-        # print bcolors.Cyan + bcolors.BOLD + 'Desea seguir probando la red?  si/no \033[0m'
         continuar = ''
         continuar = raw_input(bcolors.Cyan + bcolors.BOLD +
                               'Desea seguir probando la red?  si/no \033[0m')
